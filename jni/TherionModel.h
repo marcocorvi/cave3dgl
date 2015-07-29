@@ -1,0 +1,54 @@
+#ifndef THERION_MODEL_H
+#define THERION_MODEL_H
+
+#include <string>
+#include <map>
+#include "Geometry.h"
+#include "TherionFile.h"
+#include "TherionSurface.h"
+
+class TherionModel : public Geometry
+{
+  public:
+    typedef std::map< std::string, int >           StationMap;
+    typedef std::map< std::string, int >::iterator StationMapIterator;
+
+  private:
+    StationMap stations;
+    char ** station_name;
+    float * vertex; // stations positions
+
+    float * dem; // dem points;
+    int dem_cols;
+    int dem_rows;
+    int dem_stride; // DEM vertex stride
+    unsigned char * dem_color;
+
+    unsigned short * index;
+    int therion_ns; // nr. of stations
+    int therion_nl; // nr. of legs
+    int therion_nx; // nr. of splays
+
+    float x_offset; // file-model offset
+    float y_offset;
+    float z_offset;
+    float scale;    // model scale
+
+  public:
+    TherionModel( );
+
+    ~TherionModel();
+
+    void Init( const char * filename );
+
+    const char ** GetStations();
+
+    int GetNStations();
+
+    const float * GetDEM() const { return dem; }
+    int GetDEMCols() const { return dem_cols; }
+    int GetDEMRows() const { return dem_rows; }
+    int GetDEMStride() const { return dem_stride; }
+}; 
+
+#endif
