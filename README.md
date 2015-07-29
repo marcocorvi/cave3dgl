@@ -11,16 +11,16 @@ There is a Makefile:
 
 
 HOW TO USE THE APP:
-  . Select a Therion project file with your favourite FileManager and open it with Cave3D-gl.
+  Select a Therion project file with your favourite FileManager and open it with Cave3D-gl.
 
 FEATURES:
-  Zoom in/out.
-  Rotation and tilt.
-  Optional display of station, splays, surface.
-  Moving the position of the light source.
+  (1) Zoom in/out.
+  (2) Rotation and tilt.
+  (3) Optional display of station, splays, surface.
+  (4) Moving the position of the light source.
 
 TODO:
-  Surface texture.
-  Color by survey / altitude.
-  Wall rendering.
-  Loch file support.
+  (1) Surface texture.
+  (2) Color by survey / altitude.
+  (3) Wall rendering.
+  (4) Loch file support.
