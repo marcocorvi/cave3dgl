@@ -8,7 +8,7 @@
 void 
 StationsComponent::InitializeComponent()
 {
-  LOGI("Stations Component::Initialize()" );
+  // LOGI("Stations Component::Initialize()" );
 }
 
 void 

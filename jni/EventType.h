@@ -27,7 +27,7 @@ class EventType
 
     ~EventType() 
     {
-      LOGI("EventType::dstr id %d", id );
+      // LOGI("EventType::dstr id %d", id );
     }
 
     int Size() const { return handlers.size(); }

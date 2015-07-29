@@ -21,7 +21,7 @@
 Model::Model( const char * filename )
   : Geometry( GL_LINES, filename, FLAG_LINE )
 {
-  LOGI("Model::cstr() file %s", filename );
+  // LOGI("Model::cstr() file %s", filename );
   FILE * fp = fopen( filename, "r" );
   if ( fp != NULL ) {
     int ns;
@@ -80,7 +80,7 @@ Model::Model( const char * filename )
 
 Model::~Model()
 {
-  LOGI("Model::dstr()" );
+  // LOGI("Model::dstr()" );
   if ( my_vertex ) delete my_vertex;
   if ( my_index )  delete my_index;
 }
@@ -88,5 +88,5 @@ Model::~Model()
 void
 Model::Init()
 {
-  LOGI("Model::Init()" );
+  // LOGI("Model::Init()" );
 }

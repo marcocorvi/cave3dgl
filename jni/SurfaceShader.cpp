@@ -53,7 +53,7 @@ SurfaceShader::LinkShader()
 
   proj = Renderer::Instance()->Projection();
 
-  LOGI("Surface Shader: link %s program %d", Name(), programId );
+  // LOGI("Surface Shader: link %s program %d", Name(), programId );
 }
 
 void 

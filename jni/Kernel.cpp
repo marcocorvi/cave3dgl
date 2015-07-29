@@ -10,7 +10,7 @@ Kernel::Execute()
   // LOGI( "Kernel::Execute() tasks %d paused %d", tasks.size(), paused.size() );
   while ( tasks.size() > 0 ) {
     if ( Android::IsClosing() ) {
-      LOGI("Kernel exec: Android is closing");
+      // LOGI("Kernel exec: Android is closing");
       KillAllTasks();
     }
     TaskListIterator it;

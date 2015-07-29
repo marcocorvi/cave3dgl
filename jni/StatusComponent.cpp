@@ -8,7 +8,7 @@
 void 
 StatusComponent::InitializeComponent()
 {
-  LOGI("Status Component::Initialize()" );
+  // LOGI("Status Component::Initialize()" );
 }
 
 void 

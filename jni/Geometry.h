@@ -60,7 +60,7 @@ class Geometry
     { }
     virtual ~Geometry() 
     {
-      LOGI("Geometry dstr %s", name.c_str() );
+      // LOGI("Geometry dstr %s", name.c_str() );
     }
 
     bool TestFlag( unsigned int f ) const { return (flag & f) == flag; }

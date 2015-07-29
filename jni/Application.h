@@ -30,7 +30,7 @@ class Application
 
     virtual ~Application()
     {
-      LOGI("Application::dstr");
+      // LOGI("Application::dstr");
   
       // DestroySingletons();
     }

@@ -5,7 +5,7 @@
 
 Object::~Object()
 {
-  LOGI("Object::dstr()");
+  // LOGI("Object::dstr()");
   for ( ComponentMapIterator it = components.begin(); it != components.end(); ++it ) {
     Component * c = it->second;
     if ( c ) {

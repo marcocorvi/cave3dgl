@@ -69,10 +69,10 @@ EventManager::DetachEvent( EventId id, EventHandler & h )
 
 EventManager::~EventManager()
 {
-  LOGI("EventManager::dstr()");
+  // LOGI("EventManager::dstr()");
   for ( EventMapIterator it = events.begin(); it != events.end(); ++it ) {
     if ( it->second ) {
-      LOGI("delete Event type %d size %d\n", it->first, it->second->Size() );
+      // LOGI("delete Event type %d size %d\n", it->first, it->second->Size() );
       delete it->second;
       // it->second = NULL;
     }

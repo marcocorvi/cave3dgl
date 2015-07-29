@@ -47,7 +47,7 @@ Shader::LinkShader()
     }
     glDeleteProgram(programId);
   }
-  LOGI("Shader::link() %s program %d shaders %d %d: %d", Name(), programId, vertexShaderId, fragmentShaderId, lk );
+  // LOGI("Shader::link() %s program %d shaders %d %d: %d", Name(), programId, vertexShaderId, fragmentShaderId, lk );
 }
 
 void 

@@ -23,7 +23,7 @@ class Surface : public Renderable
 
     ~Surface()
     {
-      LOGI("Surface dstr");
+      // LOGI("Surface dstr");
       if ( vertex_data ) delete[] vertex_data;
       if ( index_data ) delete[] index_data;
     }

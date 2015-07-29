@@ -31,6 +31,6 @@ RenderableComponent::HandleEvent( EventType * evt )
 void
 RenderableComponent::InitializeComponent()
 {
-  LOGI("RenderableComponent::Initialize()" );
+  // LOGI("RenderableComponent::Initialize()" );
 }
 

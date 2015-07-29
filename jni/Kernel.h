@@ -20,12 +20,12 @@ class Kernel
   public:
     Kernel()
     {
-      LOGI("Kernel cstr");
+      // LOGI("Kernel cstr");
     }
 
     virtual ~Kernel() 
     { 
-      LOGI("Kernel dstr");
+      // LOGI("Kernel dstr");
       KillAllTasks();
     }
 

@@ -39,7 +39,7 @@ class MenuTexture : public Texture
     void ToggleSurface()  { ToggleIndex( INDEX_SURFACE ); }
     void ToggleIndex( int j ) 
     {
-      LOGI("Menu Texture toggle %d ", j);
+      // LOGI("Menu Texture toggle %d ", j);
       menu_str[j] = ( menu_str[j] == STAR )? BLANK : STAR;
       UpdateString( j );
     }

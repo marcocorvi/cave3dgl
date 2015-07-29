@@ -16,7 +16,7 @@
 void
 Renderer::InitRenderer( android_app * s )
 {
-  LOGI("Renderer::init() initialized %d", initialized );
+  // LOGI("Renderer::init() initialized %d", initialized );
   // paused = false;
   if ( initialized ) return;
 
@@ -80,8 +80,8 @@ Renderer::InitRenderer( android_app * s )
 void
 Renderer::LinkShaders()
 {
-  LOGI("Renderer::Link Shaders: shaders %d, textures %d, renderables %d",
-    shaders.size(), textures.size(), renderables.size() );
+  // LOGI("Renderer::Link Shaders: shaders %d, textures %d, renderables %d",
+  //   shaders.size(), textures.size(), renderables.size() );
   for ( ShaderVectorIterator it=shaders.begin(); it != shaders.end(); ++it ) {
     (*it)->LinkShader();
   }
@@ -94,7 +94,7 @@ void
 Renderer::DestroyRenderer()
 {
   if ( ! initialized ) return;
-  LOGI("Renderer::destroy() initialized %d", initialized );
+  // LOGI("Renderer::destroy() initialized %d", initialized );
 
   // paused = true;
   initialized = false;
@@ -205,11 +205,11 @@ Renderer::AddShader( Shader * s )
   if ( ! initialized || s == NULL ) return;
   for ( ShaderVectorIterator it=shaders.begin(); it != shaders.end(); ++it ) {
     if ( (*it) == s ) {
-      LOGI("Renderer::Add Shader() %s already there", s->Name() );
+      LOGI("WARNING Renderer::Add Shader() %s already there", s->Name() );
       return;
     }
   }
-  LOGI("Renderer::Add Shader() %s adding", s->Name() );
+  // LOGI("Renderer::Add Shader() %s adding", s->Name() );
   s->LinkShader();
   shaders.push_back( s );
 }
@@ -230,7 +230,7 @@ Renderer::RemoveShader( Shader * s )
 void
 Renderer::AddTexture( Texture * t )
 { 
-  LOGI("Renderer::Add Texture() %d", t->Id() );
+  // LOGI("Renderer::Add Texture() %d", t->Id() );
   if ( ! initialized || t == NULL ) return;
   t->InitTexture();
   textures.push_back( t );

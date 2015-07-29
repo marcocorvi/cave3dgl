@@ -12,12 +12,12 @@ mainApp::mainApp(android_app* pState)
   , state( pState )
   , theTask( NULL )
 {
-  LOGI("mainApp cstr");
+  // LOGI("mainApp cstr");
 }
 
 mainApp::~mainApp()
 {
-  LOGI("mainApp dstr");
+  // LOGI("mainApp dstr");
   if ( theTask ) {
     detachEvent( PAUSE_EVENT, *theTask );
     detachEvent( RESUME_EVENT, *theTask );

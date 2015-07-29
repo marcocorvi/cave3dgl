@@ -127,7 +127,7 @@ int32_t android_handle_input_event( struct android_app * s, AInputEvent * evt )
           if ( np == 1 && action == AMOTION_EVENT_ACTION_DOWN ) {
             float x0 = AMotionEvent_getX( evt, 0 );
             float y0 = AMotionEvent_getY( evt, 0 );
-            LOGI(" x0 %.2f y0 %.2f ", x0, y0 );
+            // LOGI(" x0 %.2f y0 %.2f ", x0, y0 );
             if ( x0 > 1100 ) {
               r = Renderer::Instance();
               if ( y0 < 740 && y0 > 690 ) {

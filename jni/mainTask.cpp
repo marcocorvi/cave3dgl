@@ -37,7 +37,7 @@ mainTask::mainTask(const unsigned int priority, const char * filename )
   , surface( NULL )
   , scale( 1.0f )
 {
-  LOGI( "mainTask cstr" );
+  // LOGI( "mainTask cstr" );
 }
 
 Geometry *
@@ -181,19 +181,13 @@ void
 mainTask::AttachEventHandlers()
 {
   TransformComponent * transform_component = component_cast<TransformComponent>( modelObject );
-  if ( transform_component ) {
-    attachEvent( MOTION_EVENT, *transform_component );
-  }
+  if ( transform_component ) attachEvent( MOTION_EVENT, *transform_component );
 
   StatusComponent * status_component = component_cast< StatusComponent >( modelObject );
-  if ( status_component ) {
-    attachEvent( PRERENDER_EVENT, *status_component );
-  }
+  if ( status_component ) attachEvent( PRERENDER_EVENT, *status_component );
 
   MenuComponent * menu_component = component_cast< MenuComponent >( modelObject );
-  if ( menu_component ) {
-    attachEvent( PRERENDER_EVENT, *menu_component );
-  }
+  if ( menu_component ) attachEvent( PRERENDER_EVENT, *menu_component );
 
   StationsComponent * station_component = component_cast< StationsComponent >( modelObject );
   if ( station_component ) {
@@ -202,36 +196,37 @@ mainTask::AttachEventHandlers()
   }
 
   RenderableComponent * renderable_component = component_cast< RenderableComponent >( modelObject );
-  if ( renderable_component ) {
-    attachEvent( RENDER_EVENT, *renderable_component );
-  }
+  if ( renderable_component ) attachEvent( RENDER_EVENT, *renderable_component );
 
   SurfaceComponent * surface_component = component_cast< SurfaceComponent >( modelObject );
-  if ( surface_component ) {
-    attachEvent( RENDER_EVENT, *surface_component );
-  }
-
-  
+  if ( surface_component ) attachEvent( RENDER_EVENT, *surface_component );
 
 }
 
 void
 mainTask::DetachEventHandlers()
 {
-  TransformComponent * transform_component = component_cast<TransformComponent>( modelObject );
-  if ( transform_component ) detachEvent( MOTION_EVENT, *transform_component );
+  SurfaceComponent * surface_component = component_cast< SurfaceComponent >( modelObject );
+  if ( surface_component ) detachEvent( RENDER_EVENT, *surface_component );
 
   RenderableComponent * renderable_component = component_cast< RenderableComponent >( modelObject );
   if ( renderable_component ) detachEvent( RENDER_EVENT, *renderable_component );
-
-  StatusComponent * status_component = component_cast< StatusComponent >( modelObject );
-  if ( status_component ) detachEvent( PRERENDER_EVENT, *status_component );
 
   StationsComponent * station_component = component_cast< StationsComponent >( modelObject );
   if ( station_component ) {
     detachEvent( PRERENDER_EVENT, *station_component );
     detachEvent( POSTMOTION_EVENT, *station_component );
   }
+
+  MenuComponent * menu_component = component_cast< MenuComponent >( modelObject );
+  if ( menu_component ) detachEvent( PRERENDER_EVENT, *menu_component );
+
+  StatusComponent * status_component = component_cast< StatusComponent >( modelObject );
+  if ( status_component ) detachEvent( PRERENDER_EVENT, *status_component );
+
+  TransformComponent * transform_component = component_cast<TransformComponent>( modelObject );
+  if ( transform_component ) detachEvent( MOTION_EVENT, *transform_component );
+
 }
 
 void
@@ -252,7 +247,7 @@ mainTask::HandleEvent( EventType * evt )
 
 mainTask::~mainTask()
 {
-  LOGI( "mainTask dstr" );
+  // LOGI( "mainTask dstr" );
   DetachEventHandlers();
   // if ( shader ) {
   //   Renderer::Instance()->RemoveShader( shader );
@@ -297,13 +292,13 @@ mainTask::Start()
   } else {
     LOGI("WARNING null transform shader");
   }
-  LOGI( "mainTask::Start() done" );
+  // LOGI( "mainTask::Start() done" );
   return true;
 }
 
 void mainTask::OnSuspend()
 {
-  LOGI( "mainTask::OnSuspend()" );
+  // LOGI( "mainTask::OnSuspend()" );
 }
 
 void mainTask::Update()
@@ -317,11 +312,11 @@ void mainTask::Update()
 
 void mainTask::OnResume()
 {
-  LOGI( "mainTask::OnResume()" );
+  // LOGI( "mainTask::OnResume()" );
 }
 
 void mainTask::Stop()
 {
-  LOGI( "mainTask::Stop()" );
+  // LOGI( "mainTask::Stop()" );
   // DetachEventHandlers();
 }

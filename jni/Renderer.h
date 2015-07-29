@@ -95,7 +95,7 @@ class Renderer : public Singleton<Renderer>
       , lightPhi( 45.0f )
       , lightNP( -1 )
     { 
-      LOGI("Renderer cstr()");
+      // LOGI("Renderer cstr()");
       ComputeLight();
     }
 
@@ -124,7 +124,7 @@ class Renderer : public Singleton<Renderer>
   public:
     ~Renderer()
     {
-      LOGI("Renderer dstr()");
+      // LOGI("Renderer dstr()");
     }
 
     void InitRenderer( android_app * s );

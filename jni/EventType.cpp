@@ -14,7 +14,7 @@ EventType::Send()
 void 
 EventType::SendToHandler( EventHandler & h )
 {
-  LOGI("EventType::SendToHandler() type %d: %s", id, h.HandlerName() );
+  // LOGI("EventType::SendToHandler() type %d: %s", id, h.HandlerName() );
   for (HandlerVectorIterator it = handlers.begin(); it != handlers.end(); ++it ) {
     if ( *it == &h ) {
       h.HandleEvent( this );

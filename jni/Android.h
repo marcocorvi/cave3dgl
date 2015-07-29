@@ -39,22 +39,22 @@ class Android : public Task
 
     virtual bool Start() 
     { 
-      LOGI("Android START");
+      // LOGI("Android START");
       ResetFlags();
       return true;
     }
     virtual void OnSuspend()
     {
-      LOGI("Android SUSPEND");
+      // LOGI("Android SUSPEND");
     }
     virtual void OnResume() 
     { 
-      LOGI("Android RESUME");
+      // LOGI("Android RESUME");
       paused = false;
     }
     virtual void Stop() 
     {
-      LOGI("Android STOP");
+      // LOGI("Android STOP");
       paused = true;
       render = false;
     }
