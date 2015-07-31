@@ -18,6 +18,7 @@ class TherionModel : public Geometry
     char ** station_name;
     float * vertex; // stations positions
 
+    // each DEM point has 9 values: 3 pos. coords, 3 normal comps., 3 texture color comps
     float * dem; // dem points;
     int dem_cols;
     int dem_rows;

@@ -9,6 +9,7 @@
 #include "TherionShot.h"
 #include "TherionSurvey.h"
 #include "TherionSurface.h"
+#include "TherionBitmap.h"
 
 class TherionFile
 {
@@ -24,6 +25,7 @@ class TherionFile
     float emin, emax, nmin, nmax, zmin, zmax;
     float mCaveLength;
     TherionSurface * mSurface;
+    TherionBitmap * mBitmap;
 
   public:
     float Emin() const { return emin; }
@@ -47,6 +49,8 @@ class TherionFile
     bool CanRender() const { return can_render; }
 
     TherionSurface * GetSurface() { return mSurface; }
+
+    TherionBitmap * GetBitmap() { return mBitmap; }
 
     TherionSurvey * GetSurvey( const char * name );
 

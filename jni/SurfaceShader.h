@@ -14,6 +14,7 @@ class SurfaceShader : public Shader
     GLint   transformITHandle;
     GLint   posHandle;
     GLint   normHandle;
+    GLint   texHandle;
     GLint   ambColHandle;
     GLint   difColHandle;
     GLint   lightHandle;

@@ -16,6 +16,7 @@
 int ParseFlip( std::string flip );
 char * Trim( char * ch );
 void RemoveComment( char * ch );
+void RemoveBrackets( char * ch );
 size_t SplitOnSpaces( char * ch, std::vector<const char *> & vals );
 
 #endif

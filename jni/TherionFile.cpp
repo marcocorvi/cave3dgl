@@ -186,12 +186,14 @@ TherionFile::~TherionFile()
   CLEAR_VECTOR( TherionSurvey, surveys );
   CLEAR_VECTOR( TherionStation, stations );
   if ( mSurface != NULL ) delete mSurface;
+  if ( mBitmap != NULL ) delete mBitmap;
 }
 
 
 TherionFile::TherionFile( const std::string & filename )
   : can_render( false )
   , mSurface( NULL )
+  , mBitmap( NULL ) 
 {
   ks = 0;
   if ( ReadFile( filename.c_str(), "", false, 0.0, 1.0, 1.0, 1.0 ) ) {
@@ -379,6 +381,7 @@ TherionFile::ReadFile( const std::string & filename,
   // Log.v(TAG, cnt + ":" + line );
   char * ch = fgets( line, size, br );
   while ( ch != NULL ) {
+    RemoveBrackets( ch );
     ch = Trim( ch );
     RemoveComment( ch );
     // LOGI("%s", ch );
@@ -483,6 +486,18 @@ TherionFile::ReadFile( const std::string & filename,
           if ( EQUALS(cmd, "endsurface") ) {
             in_surface = false;
             // LOGI("finished reading surface data");
+          } else if ( EQUALS(cmd, "bitmap") ) {
+            if ( vals_length >= 10 && mBitmap == NULL ) {
+              mBitmap = new TherionBitmap( );
+              std::string bitmapfile = dirname + '/' + vals[1];
+              // LOGI("BITMAP file %s", bitmapfile.c_str() );
+              if ( ! mBitmap->Load( bitmapfile.c_str(),
+                          atoi( vals[2] ), atoi( vals[3] ), atof( vals[4] ), atof( vals[5] ),
+                          atoi( vals[6] ), atoi( vals[7] ), atof( vals[8] ), atof( vals[9] ) ) ) {
+                delete mBitmap;
+                mBitmap = NULL;
+              }
+            }
           } else if ( EQUALS(cmd, "grid") ) {
             grid_flip = FLIP_NONE;
             units_grid = 1;

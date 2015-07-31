@@ -160,12 +160,15 @@ TherionModel::Init( const char * filename )
   SetVertexStride( sizeof(float) * 3 );
 
   TherionSurface * s = thf.GetSurface();
+  TherionBitmap * bitmap = thf.GetBitmap();
+  // LOGI("Bitmap is %s", ( bitmap != NULL )? "not NULL" : "NULL" );
+
   if ( s != NULL ) {
     // LOGI("got therion surface");
     float de = s->DimEast();
     float dn = s->DimNorth();
     int n_cols = s->NrEast();
-    dem_stride = DEM_STRIDE;
+    dem_stride = DEM_STRIDE + 3; // +3 for the color
     #if DEM_STRIDE == 6
       dem_cols = s->NrEast()  - 1;
       dem_rows = s->NrNorth() - 1;
@@ -178,12 +181,13 @@ TherionModel::Init( const char * filename )
       float n1 = s->North1();
     #endif
     const float * z = s->GetZ();
-    dem = new float[ DEM_STRIDE * dem_cols * dem_rows ];
+    dem = new float[ dem_stride * dem_cols * dem_rows ];
     dem_color = new unsigned char[ 3 * dem_cols * dem_rows ];
+    float r=1.0, g=1.0, b=1.0;
     for ( int n =0; n < dem_rows; ++n ) {
       for ( int e = 0; e < dem_cols; ++e ) {
         int zoff = n * n_cols + e;
-        int off = (n * dem_cols + e) * DEM_STRIDE; 
+        int off = (n * dem_cols + e) * dem_stride; 
         #if DEM_STRIDE == 6
           float zval = ( z[zoff] + z[zoff+1] + z[zoff+n_cols] + z[zoff+n_cols+1] ) / 4;
           float normal_x = ( z[zoff] - z[zoff+1] + z[zoff+n_cols] - z[zoff+n_cols+1] ) / (2 * de);
@@ -197,11 +201,19 @@ TherionModel::Init( const char * filename )
           dem[ off + 3  ] = normal_x / n2;
           dem[ off + 4  ] = normal_y / n2;
           dem[ off + 5  ] = 1.0f / n2;
+          if ( bitmap != NULL ) bitmap->GetRGB( e1 + e*de, n1 + n*dn, r, g, b );
+          dem[ off + 6  ] = r;
+          dem[ off + 7  ] = g;
+          dem[ off + 8  ] = b;
         #else 
           dem[ off + 0  ] = SIGN_X( (z[ zoff ] - x_offset) * scale );
           dem[ off + 1  ] = SIGN_Y( (e1 + e * de - y_offset) * scale );
           // FIXME why not to add 100.0f ????
           dem[ off + 2  ] = SIGN_Z( (n1 + n * dn - z_offset) * scale ); //  + 100.0f;
+          if ( bitmap != NULL ) bitmap->GetRGB( e1 + e*de, n1 + n*dn, r, g, b );
+          dem[ off + 3  ] = r;
+          dem[ off + 4  ] = g;
+          dem[ off + 5  ] = b;
         #endif
         // LOGI("DEM %d-%d %.2f %.2f %.2f", e,n, dem[off+0], dem[off+1], dem[off+2] );
       }

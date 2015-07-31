@@ -35,6 +35,15 @@ void RemoveComment( char * ch )
   }
 }
 
+void RemoveBrackets( char * ch )
+{
+  while ( *ch != 0 ) {
+    if ( *ch == '[' || *ch == ']' ) *ch = ' ';
+    ++ch;
+  }
+}
+   
+
 size_t SplitOnSpaces( char * ch, std::vector<const char *> & vals )
 {
   vals.clear();

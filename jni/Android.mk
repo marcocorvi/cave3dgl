@@ -1,11 +1,15 @@
 LOCAL_PATH := $(call my-dir)
 
+PNG_PATH := /home/programs/android-sdk/samples/android-8/libpng_android
+
 include $(CLEAR_VARS)
 
 LOCAL_ARM_MODE   := arm
-LOCAL_C_INCLUDES := $(LOCAL_PATH)
+LOCAL_C_INCLUDES := $(LOCAL_PATH) 
 LOCAL_MODULE     := Cave3Dgl
+
 LOCAL_SRC_FILES  := \
+Image_PNG.cpp \
 Plane.cpp \
 Transform.cpp \
 Vector3.cpp \
@@ -40,6 +44,7 @@ SurfaceComponent.cpp \
 Geometry.cpp \
 Model.cpp \
 TherionModel.cpp \
+TherionBitmap.cpp \
 TherionFlip.cpp \
 TherionFile.cpp \
 TherionStation.cpp \
@@ -69,9 +74,11 @@ Texture.cpp \
 File.cpp \
 TGAFile.cpp 
 
-LOCAL_LDLIBS    	:= -llog -landroid -lEGL -lGLESv2
-LOCAL_STATIC_LIBRARIES	:= android_native_app_glue
+LOCAL_LDLIBS    	:= -llog -landroid -lEGL -lGLESv2 -lpng -lz
+
+LOCAL_STATIC_LIBRARIES	:= android_native_app_glue 
 
 include $(BUILD_SHARED_LIBRARY)
 
 $(call import-module,android/native_app_glue)
+

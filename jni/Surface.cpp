@@ -11,10 +11,11 @@ Surface::Surface( const float * coords, int ne, int nn, int ns, Shader * shader 
       : Geometry( TYPE, "surface", FLAG_SURFACE )
       , vertex_data( NULL )
       , index_data( NULL )
-	, stride( ns ) // TODO COLOR +3
+      , stride( ns ) 
 {
-  Vector4 colA(0.1f, 0.1f, 0.4f, 0.2f);
-  Vector4 colD(0.1f, 0.3f, 0.5f, 1.0f);
+  Vector4 colA(0.1f, 0.1f, 0.1f, 0.2f);
+  Vector4 colD(0.5f, 0.5f, 0.5f, 1.0f);
+
   SetAmbientColor( colA );
   SetDiffuseColor( colD );
   int nx = ne / SUBS - 4;
@@ -44,7 +45,7 @@ Surface::Surface( const float * coords, int ne, int nn, int ns, Shader * shader 
   #if TYPE == GL_TRIANGLES
     for ( int n = 0; n < ny-1; ++n ) {
       for ( int e = 0; e < nx-1; ++e ) {
-        index_data[ j++ ] = n * nx + e;       // N.B. oder important for CULL
+        index_data[ j++ ] = n * nx + e;       // N.B. order important for CULL
         index_data[ j++ ] = n * nx + e + 1;
         index_data[ j++ ] = (n+1) * nx + e;
         index_data[ j++ ] = n * nx + e + 1;

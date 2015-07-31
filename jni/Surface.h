@@ -14,7 +14,7 @@ class Surface : public Renderable
     // Shader * shader;
     float * vertex_data;
     unsigned short * index_data;
-    int stride; // vertex stride (3 only surface, 6 also normal)
+    int stride; // vertex stride (3 only surface, 6 also normal) + 3 for the color
     Vector4 ambientColor;
     Vector4 diffuseColor;
 

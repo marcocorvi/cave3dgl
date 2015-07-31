@@ -42,7 +42,7 @@ Shader::LinkShader()
     if (infoLen > 1) {
       char* infoLog = new char[infoLen];
       glGetProgramInfoLog( programId, infoLen, NULL, infoLog );
-      LOGW("Error linking program: %s\n", infoLog);
+      LOGW("Error linking program %s: %s\n", Name(), infoLog);
       delete[] infoLog;
     }
     glDeleteProgram(programId);
