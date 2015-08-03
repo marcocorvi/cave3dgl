@@ -14,7 +14,7 @@ SurfaceComponent::InitializeComponent()
 void 
 SurfaceComponent::HandleEvent( EventType * evt )
 {
-  // LOGI("Status Component::HandleEvent() %d ", evt->GetId() );
+  // LOGI("Surface Component::HandleEvent() %d ", evt->GetId() );
   if ( evt == NULL ) return;
   switch ( evt->GetId() ) {
     case RENDER_EVENT:

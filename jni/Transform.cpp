@@ -182,29 +182,29 @@ Transform::Log() const
 void 
 Transform::Rotate( float dt, float dp )
 {
-  angleT += dt/10;
+  angleT -= dt/10;
   if ( angleT > 90 ) angleT = 90;
   if ( angleT < -90 ) angleT = -90;
-  angleP += dp/10; 
+  angleP -= dp/10; 
   while ( angleP >= 360 ) angleP -= 360;
   while ( angleP < 0 )    angleP += 360;
   // LOGI("Camera R %.2f %.2f ", angleT, angleP );
 
   float ct = (float)cos( angleT * 3.1415926536f / 180.0f );
   float st = (float)sin( angleT * 3.1415926536f / 180.0f );
-  float cp = (float)cos( angleP * 3.1415926536f / 180.0f );
-  float sp = (float)sin( angleP * 3.1415926536f / 180.0f );
+  float cp = -(float)cos( angleP * 3.1415926536f / 180.0f );
+  float sp = -(float)sin( angleP * 3.1415926536f / 180.0f );
 
   m_rotation.m_m[0] = ct;
-  m_rotation.m_m[1] = 0.0f;
-  m_rotation.m_m[2] = st;
+  m_rotation.m_m[1] = - st * sp;
+  m_rotation.m_m[2] = - st * cp;
 
-  m_rotation.m_m[3] = - st * sp;
+  m_rotation.m_m[3] = 0.0f;
   m_rotation.m_m[4] =        cp;
-  m_rotation.m_m[5] =   ct * sp;
+  m_rotation.m_m[5] = -      sp;
 
-  m_rotation.m_m[6] = - st * cp;
-  m_rotation.m_m[7] = -      sp;
+  m_rotation.m_m[6] = st;
+  m_rotation.m_m[7] =   ct * sp;
   m_rotation.m_m[8] =   ct * cp;
 
   // UpdateMatrix();

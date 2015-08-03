@@ -20,12 +20,18 @@ Image_PNG::open(const char * filename)
     LOGI("Image_PNG: unable to open file: %s\n", filename);
     return false;
   }
+  bool ret = open( fp );
+  fclose( fp );
+  return ret;
+}
  
+bool
+Image_PNG::open( FILE * fp ) 
+{
   /* 
   png_byte buf[NUMBER]; // png needs 4 bytes to check
   if ((fread(buf, 1, NUMBER, fp) != NUMBER) || 
       (! png_sig_cmp(buf, (png_size_t)0, NUMBER))) {
-    fclose( fp );
     throw;
   }
   */
@@ -37,20 +43,17 @@ Image_PNG::open(const char * filename)
     NULL   // user_warning_fn
   );
   if ( ! png_ptr ) {
-    fclose( fp );
     return false;
   }
 
   png_infop info_ptr = png_create_info_struct(png_ptr);
   if (!info_ptr) {
     png_destroy_read_struct(&png_ptr, (png_infopp)NULL, (png_infopp)NULL);
-    fclose( fp );
     return false;
   }
 
   if (setjmp(png_jmpbuf(png_ptr))) {
     png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
-    fclose(fp);
     return false;
   }
 
@@ -106,7 +109,6 @@ Image_PNG::open(const char * filename)
   } }
 
   png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
-  fclose(fp);
 
   _owner = true;
   return true;

@@ -27,7 +27,7 @@ class EventManager : public Singleton<EventManager>
     void AttachEvent( EventId id, EventHandler & h );
     void DetachEvent( EventId id, EventHandler & h );
 
-  public: // FIXME
+  public: 
     EventManager()
     {
       // LOGI("EventManager::cstr()");

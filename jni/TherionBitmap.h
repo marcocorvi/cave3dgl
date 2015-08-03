@@ -55,6 +55,8 @@ class TherionBitmap
 
   private:
     bool ReadImage( const char * filename );
+    bool ReadPNGImage( const char * filename );
+    bool ReadJPEGImage( const char * filename );
   
   //   const char * ParseFloat( const char * ch, float & val, bool last );
           

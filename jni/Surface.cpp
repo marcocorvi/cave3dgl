@@ -13,13 +13,18 @@ Surface::Surface( const float * coords, int ne, int nn, int ns, Shader * shader 
       , index_data( NULL )
       , stride( ns ) 
 {
+#if TYPE == GL_TRIANGLES
   Vector4 colA(0.1f, 0.1f, 0.1f, 0.2f);
   Vector4 colD(0.5f, 0.5f, 0.5f, 1.0f);
+#else
+  Vector4 colA(1.0f, 0.0f, 0.0f, 1.0f);
+  Vector4 colD(1.0f, 0.0f, 0.0f, 1.0f);
+#endif
 
   SetAmbientColor( colA );
   SetDiffuseColor( colD );
-  int nx = ne / SUBS - 4;
-  int ny = nn / SUBS - 4;
+  int nx = ne / SUBS;
+  int ny = nn / SUBS;
   // LOGI("Surface cstr: %d x %d shader %s", ne, nn, shader->Name() );
   nVertex = nx * ny;
   #if TYPE == GL_TRIANGLES

@@ -1,6 +1,7 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 
+#include <stdio.h>
 #include <stdlib.h>
 
 class Image
@@ -9,6 +10,8 @@ class Image
     unsigned char * _img;  //!< Image pixel data
     unsigned int _width;   //!< Image width
     unsigned int _height;  //!< Image height
+    unsigned int _stride;
+    int _bpp; 
     bool _owner;           //!< This object owns the data memory
 
   public:
@@ -16,6 +19,8 @@ class Image
       : _img( NULL )
       , _width( 0 )
       , _height( 0 )
+      , _stride( 0 )
+      , _bpp( 3 )
       , _owner( false )
     { }
 
@@ -32,7 +37,7 @@ class Image
     { }
 
 
-    ~Image()
+    virtual ~Image()
     {
       if ( _owner && _img != NULL ) free( _img );
     }
@@ -41,7 +46,15 @@ class Image
 
     unsigned int height()  { return _height; }
 
+    unsigned int stride() const { return _stride; }
+
+    int BPP() const { return _bpp; }
+
     unsigned char * image() { return _img; }
+
+    virtual bool open( const char * filename ) = 0;
+  
+    virtual bool open( FILE * fp ) = 0;
 
 };
 

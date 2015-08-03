@@ -8,19 +8,16 @@
 class Image_PNG : public Image
 {
   private:
-    int _bpp; 
-    int _stride;
 
   public:
     Image_PNG() { }
 
     bool open( const char * filename );
 
+    bool open( FILE * fp );
+
     // bool save_image(const char * filename);
 
-    int stride() const { return _stride; }
-
-    int BPP() const { return _bpp; }
 };
 
 #endif // Image_PNG

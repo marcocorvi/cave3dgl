@@ -77,7 +77,7 @@ class Renderer : public Singleton<Renderer>
     bool ShouldDraw( Renderable * r ) const;
     void BuildFrustum( float fov, float aspect, float near, float far );
 
-  public: // FIXME
+  public:
     Renderer( )
       : Task( RENDER_PRIORITY, "renderer" )
       , EventHandler( "renderer" )

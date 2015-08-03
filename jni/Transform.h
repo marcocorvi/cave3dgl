@@ -36,7 +36,7 @@ class Transform
       // sprintf( statusString, "C %.0f %.0f %.0f Theta %.0f Phi %.0f",
       //   m_translation.m_y, -m_translation.m_x, m_translation.m_z,
       //   -angleT, angleP ); // was: -angleP, -angleT
-      sprintf( statusString, "Theta %.0f Phi %.0f", -angleT, angleP ); // was: -angleP, -angleT
+      sprintf( statusString, "Theta %.0f Phi %.0f", angleT, angleP );
       return statusString;
     }
 

@@ -32,11 +32,11 @@ SurfaceShader::SurfaceShader( )
     "const float c_zero = 0.0; \n"
     "const float c_one  = 1.0; \n"
     "void main() { \n"
-    // "  gl_FragColor = vec4( c_zero, c_zero, c_zero, c_zero ); \n"
     "  float d = dot( v_vNormal, u_vLight ); \n"
     "  d = max( d, c_zero ); \n"
     "  gl_FragColor = (a_vColor + d *  d_vColor) * v_tColor; \n"
     "  gl_FragColor.a *= 0.75; \n"
+    // "  gl_FragColor = vec4( 1.0, 0, 0, 1.0 ); \n"
     "} \n";
 }
 

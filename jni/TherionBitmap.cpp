@@ -4,6 +4,7 @@
 #include <ctype.h>
 
 #include "Image_PNG.h"
+#include "Image_JPG.h"
 #include "Log.h"
 
 // desc : bitmap description
@@ -91,12 +92,24 @@ TherionBitmap::GetRGB( float e, float n, float & r, float & g, float & b )
 bool
 TherionBitmap::ReadImage( const char * filename )
 {
+  if ( filename == NULL ) return false;
+  size_t len = strlen( filename );
+  if ( strcmp( filename+len-3, "png" ) == 0 ) return ReadPNGImage( filename );
+  if ( strcmp( filename+len-3, "jpg" ) == 0 ) return ReadJPEGImage( filename );
+  if ( strcmp( filename+len-4, "jpeg" ) == 0 ) return ReadJPEGImage( filename );
+  LOGI("Unsupported file type \"%s\"\n", filename );
+  return false;
+}
+
+bool
+TherionBitmap::ReadPNGImage( const char * filename )
+{
   Image_PNG png;
   if ( ! png.open( filename ) ) {
     return false;
   }
-  // LOGI("PNG %d %d stride %d BPP %d",
-  //   png.width(), png.height(), png.stride(), png.BPP() );
+  LOGI("PNG %d %d stride %d BPP %d", png.width(), png.height(), png.stride(), png.BPP() );
+
   w = png.width();
   h = png.height();
   unsigned char * img = png.image();
@@ -111,6 +124,42 @@ TherionBitmap::ReadImage( const char * filename )
     }
     return true;
   } else if ( png.BPP() == 1 ) {
+    red   = new unsigned char[ w * h ];
+    green = new unsigned char[ w * h ];
+    blue  = new unsigned char[ w * h ];
+    for ( int k = 0; k < w*h; ++k ) {
+      red[k]   = img[ k ];
+      green[k] = img[ k ];
+      blue[k]  = img[ k ];
+    }
+    return true;
+  }
+  return false;
+}
+
+bool
+TherionBitmap::ReadJPEGImage( const char * filename )
+{
+  Image_JPG jpg;
+  if ( ! jpg.open( filename ) ) {
+    return false;
+  }
+  LOGI("JPG %d %d stride %d BPP %d", jpg.width(), jpg.height(), jpg.stride(), jpg.BPP() );
+
+  w = jpg.width();
+  h = jpg.height();
+  unsigned char * img = jpg.image();
+  if ( jpg.BPP() == 3 ) {
+    red   = new unsigned char[ w * h ];
+    green = new unsigned char[ w * h ];
+    blue  = new unsigned char[ w * h ];
+    for ( int k = 0; k < w*h; ++k ) {
+      red[k]   = img[ 3*k + 0 ];
+      green[k] = img[ 3*k + 1 ];
+      blue[k]  = img[ 3*k + 2 ];
+    }
+    return true;
+  } else if ( jpg.BPP() == 1 ) {
     red   = new unsigned char[ w * h ];
     green = new unsigned char[ w * h ];
     blue  = new unsigned char[ w * h ];

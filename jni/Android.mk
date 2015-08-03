@@ -9,6 +9,7 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH)
 LOCAL_MODULE     := Cave3Dgl
 
 LOCAL_SRC_FILES  := \
+Image_JPG.cpp \
 Image_PNG.cpp \
 Plane.cpp \
 Transform.cpp \
@@ -44,9 +45,11 @@ SurfaceComponent.cpp \
 Geometry.cpp \
 Model.cpp \
 TherionModel.cpp \
-TherionBitmap.cpp \
-TherionFlip.cpp \
+LoxFile.cpp \
+LoxBitmap.cpp \
 TherionFile.cpp \
+TherionFlip.cpp \
+TherionBitmap.cpp \
 TherionStation.cpp \
 TherionShot.cpp \
 TherionSurvey.cpp \
@@ -74,7 +77,7 @@ Texture.cpp \
 File.cpp \
 TGAFile.cpp 
 
-LOCAL_LDLIBS    	:= -llog -landroid -lEGL -lGLESv2 -lpng -lz
+LOCAL_LDLIBS    	:= -llog -landroid -lEGL -lGLESv2 -lpng -ljpeg -lz
 
 LOCAL_STATIC_LIBRARIES	:= android_native_app_glue 
 

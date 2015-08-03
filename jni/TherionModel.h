@@ -4,8 +4,6 @@
 #include <string>
 #include <map>
 #include "Geometry.h"
-#include "TherionFile.h"
-#include "TherionSurface.h"
 
 class TherionModel : public Geometry
 {
@@ -23,7 +21,6 @@ class TherionModel : public Geometry
     int dem_cols;
     int dem_rows;
     int dem_stride; // DEM vertex stride
-    unsigned char * dem_color;
 
     unsigned short * index;
     int therion_ns; // nr. of stations
@@ -50,6 +47,10 @@ class TherionModel : public Geometry
     int GetDEMCols() const { return dem_cols; }
     int GetDEMRows() const { return dem_rows; }
     int GetDEMStride() const { return dem_stride; }
+
+  private:
+    void InitFromTh( const char * filename );
+    void InitFromLox( const char * filename );
 }; 
 
 #endif

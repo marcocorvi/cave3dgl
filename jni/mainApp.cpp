@@ -28,7 +28,8 @@ mainApp::~mainApp()
 
 bool mainApp::Initialize()
 {
-  std::string filename = "file:///storage/emulated/0/TopoDroid-draghi/th/draghi.th";
+  // std::string filename = "file:///storage/emulated/0/TopoDroid-draghi/th/draghi.th";
+  std::string filename = "";
 
   state->activity->vm->AttachCurrentThread( &env, 0 );
   jobject me = state->activity->clazz;
@@ -52,20 +53,23 @@ bool mainApp::Initialize()
       jmethodID guid = env->GetMethodID( ucl, "toString", "()Ljava/lang/String;" );
       jstring str = (jstring) env->CallObjectMethod( uri, guid );
       const char * path = env->GetStringUTFChars( str, 0 );
-      LOGI("mainApp::Initialize() %s", path );
+      LOGI("mainApp::initialize() URI path %s", path );
       filename = path;
       env->ReleaseStringUTFChars( str, path );
     }
   }
-  LOGI("mainApp::Initialize() %s", filename.c_str() );
+  LOGI("mainApp::initialize() %s", filename.c_str() );
 
   bool success = Application::Initialize(); // add tasks to kernel: Android, Timer, Renderer
   
   if (success) {
+    LOGI("application successfully initialized");
     theTask = new mainTask( MAIN_PRIORITY, filename.c_str() );
     attachEvent( PAUSE_EVENT, *theTask );
     attachEvent( RESUME_EVENT, *theTask );
     success &= kernel.AddTask( theTask );  // add my task to kernel
+  } else {
+    LOGW("WARNING application initialization failed");
   }
 
   return success;
