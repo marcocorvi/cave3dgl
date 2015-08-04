@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#include "Log.h"
+
 class LoxBitmap
 {
   private:
@@ -35,7 +37,10 @@ class LoxBitmap
       for ( int k=0; k<6; ++k ) calib[k]= c[k];
       det = calib[2] * calib[5] - calib[3] * calib[4];
       Data2RGB();
+      // LOGI("Bitmap calib %.2f %.2f %.2f   %.2f %.2f %.2f", c[0], c[2], c[3], c[1], c[4], c[5] );
     }
+
+    ~LoxBitmap();
 
     uint32_t Surface() const { return sid; }
     uint32_t Type() const { return type; }

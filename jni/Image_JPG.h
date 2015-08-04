@@ -17,6 +17,8 @@ class Image_JPG : public Image
 
     bool open( FILE * fp );
     
+    bool open( unsigned char * data, size_t size );
+
     /** Saving the image data to a JPG file 
      * @param filename output file name
      */

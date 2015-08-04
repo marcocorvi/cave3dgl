@@ -56,6 +56,8 @@ class Image
   
     virtual bool open( FILE * fp ) = 0;
 
+    virtual bool open( unsigned char * data, size_t size ) = 0;
+
 };
 
 #endif // IMAGE_H

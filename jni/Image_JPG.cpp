@@ -26,6 +26,49 @@ Image_JPG::open(const char * filename)
   return ret;
 }
 
+bool 
+Image_JPG::open( unsigned char * data, size_t size )
+{
+  struct jpeg_decompress_struct cinfo;
+  struct jpeg_error_mgr jerr;
+  cinfo.err = jpeg_std_error(&jerr);
+  jpeg_create_decompress(&cinfo);
+
+  jpeg_mem_src(&cinfo, data, size );
+  (void) jpeg_read_header(&cinfo, TRUE);
+
+  _height = cinfo.image_height;
+  _width  = cinfo.image_width;
+  _bpp    = cinfo.num_components;
+  _stride = _width * _bpp;
+  _img = (unsigned char *)malloc( _stride * _height );
+  // LOGI("JPEG %dx%d stride %d BPP %d", _width, _height, _stride, _bpp );
+
+  // djpeg_dest_ptr dest_mgr = NULL;
+  // dest_mgr = jinit_write_bmp(&cinfo, FALSE);
+
+  (void) jpeg_start_decompress(&cinfo);
+  JSAMPLE * lines[_height];
+  for (unsigned int j=0; j<_height; j++) 
+    lines[j] = _img + j*_stride;
+  unsigned int n_lines = 0;
+  while (n_lines < _height) {
+    int n = jpeg_read_scanlines(&cinfo, 
+                    lines + n_lines,     // dest_mgr->buffer,
+                    (_height - n_lines)  // dest_mgr->buffer_height
+            );
+    // (*dest_mgr->put_pixel_rows) (&cinfo, dest_mgr, num_scanlines);
+    n_lines += n;
+  }
+
+  // (*dest_mgr->finish_output) (&cinfo, dest_mgr);
+  (void) jpeg_finish_decompress(&cinfo);
+  jpeg_destroy_decompress(&cinfo);
+
+  _owner = true;
+  return true;
+}
+
 bool
 Image_JPG::open( FILE * fp )
 {

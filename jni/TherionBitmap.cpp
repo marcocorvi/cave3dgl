@@ -97,7 +97,7 @@ TherionBitmap::ReadImage( const char * filename )
   if ( strcmp( filename+len-3, "png" ) == 0 ) return ReadPNGImage( filename );
   if ( strcmp( filename+len-3, "jpg" ) == 0 ) return ReadJPEGImage( filename );
   if ( strcmp( filename+len-4, "jpeg" ) == 0 ) return ReadJPEGImage( filename );
-  LOGI("Unsupported file type \"%s\"\n", filename );
+  LOGW("Unsupported file type \"%s\"\n", filename );
   return false;
 }
 
@@ -108,7 +108,7 @@ TherionBitmap::ReadPNGImage( const char * filename )
   if ( ! png.open( filename ) ) {
     return false;
   }
-  LOGI("PNG %d %d stride %d BPP %d", png.width(), png.height(), png.stride(), png.BPP() );
+  // LOGI("PNG %d %d stride %d BPP %d", png.width(), png.height(), png.stride(), png.BPP() );
 
   w = png.width();
   h = png.height();
@@ -144,7 +144,7 @@ TherionBitmap::ReadJPEGImage( const char * filename )
   if ( ! jpg.open( filename ) ) {
     return false;
   }
-  LOGI("JPG %d %d stride %d BPP %d", jpg.width(), jpg.height(), jpg.stride(), jpg.BPP() );
+  // LOGI("JPG %d %d stride %d BPP %d", jpg.width(), jpg.height(), jpg.stride(), jpg.BPP() );
 
   w = jpg.width();
   h = jpg.height();

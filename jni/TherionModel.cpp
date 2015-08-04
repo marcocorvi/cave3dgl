@@ -22,7 +22,7 @@
  * ...
  */
 
-#define DEM_STRIDE 6
+#define DEM_STRIDE 6 /* 3 only positions, 6 position+normal */
 
 // vertices are Rotated-Z:
 // x = - Y_orig
@@ -269,7 +269,7 @@ TherionModel::InitFromLox( const char * filename )
   int ns  = lox.NrStations();
   int nlx = lox.NrShots(); // legs + splays
   vertex = new float[ 3 * ns ];
-  LOGI("Lox: stations %d shots %d ", ns, nlx );
+  // LOGI("Lox: stations %d shots %d ", ns, nlx );
 
   therion_ns = 0;
   therion_nx = 0;
@@ -310,7 +310,7 @@ TherionModel::InitFromLox( const char * filename )
   if ( y_scale > scale ) scale = y_scale;
   if ( z_scale > scale ) scale = z_scale;
   scale = 20.0f / scale;
-  LOGI("Offset (Center) V %.2f E %.2f N %.2f Scale %.2f", x_offset, y_offset, z_offset, scale );
+  // LOGI("Offset (Center) V %.2f E %.2f N %.2f Scale %.2f", x_offset, y_offset, z_offset, scale );
 
   int idst[ ns ]; // stations id
 

@@ -313,9 +313,12 @@ LoxFile::HandleBitmap( )
     id, tp, c[0], c[1], c[2], c[3], c[4], c[5], dp, ds );
   // image file binary data
   unsigned char * img = data + dp;
-  LOGI("File %x %x %x %x %x %x %x %x", 
-    img[0], img[1], img[2], img[3], img[4], img[5], img[6], img[7] );
-  if ( mBitmap ) delete mBitmap;
+  // LOGI("File %x %x %x %x %x %x %x %x", 
+  //   img[0], img[1], img[2], img[3], img[4], img[5], img[6], img[7] );
+  if ( mBitmap ) {
+    LOGW("Lox File delete existing bitmap");
+    delete mBitmap;
+  }
   mBitmap = new LoxBitmap( id, tp, ds, c, img );
 }
 
