@@ -43,14 +43,14 @@ class LoxShot
     uint32_t Type() const { return type; }
 
     double FLeft() const  { return fLRUD[0]; }
-    double FRight() const { return fLRUD[0]; }
-    double FUp() const    { return fLRUD[0]; }
-    double FDown() const  { return fLRUD[0]; }
+    double FRight() const { return fLRUD[1]; }
+    double FUp() const    { return fLRUD[2]; }
+    double FDown() const  { return fLRUD[3]; }
 
     double TLeft() const  { return tLRUD[0]; }
-    double TRight() const { return tLRUD[0]; }
-    double TUp() const    { return tLRUD[0]; }
-    double TDown() const  { return tLRUD[0]; }
+    double TRight() const { return tLRUD[1]; }
+    double TUp() const    { return tLRUD[2]; }
+    double TDown() const  { return tLRUD[3]; }
 
     double VThreshold() const { return vthr; }
 };

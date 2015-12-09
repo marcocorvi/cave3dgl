@@ -30,12 +30,14 @@ SurfaceShader::SurfaceShader( )
     "uniform vec4 d_vColor; \n"   // diffuse color
     "uniform vec3 u_vLight; \n"   // light direction
     "const float c_zero = 0.0; \n"
-    "const float c_one  = 1.0; \n"
+    // "const float c_one  = 1.0; \n"
+    // "const vec4 v_zero = vec4(0,0,0,0); \n"
     "void main() { \n"
     "  float d = dot( v_vNormal, u_vLight ); \n"
     "  d = max( d, c_zero ); \n"
     "  gl_FragColor = (a_vColor + d *  d_vColor) * v_tColor; \n"
-    "  gl_FragColor.a *= 0.75; \n"
+    // gl_FragColor = max( gl_FragColor, v_zero ); \n"
+    "  gl_FragColor.a = 0.75; \n"
     // "  gl_FragColor = vec4( 1.0, 0, 0, 1.0 ); \n"
     "} \n";
 }
