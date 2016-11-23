@@ -3,7 +3,7 @@
     android:versionName="1.0"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <uses-sdk android:minSdkVersion="9"/>
+    <uses-sdk android:minSdkVersion="8"/>
     <uses-feature android:name="@string/app_name" android:glEsVersion="2" android:required="true"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />  
 
