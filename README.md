@@ -1,6 +1,6 @@
 # Cave3D with OpenGL ES 2.0
 
-Cave3dgl is a Therion projects 3D visualizer written in C++ using the android native glue.
+Cave3dgl is a Therion/Loch 3D visualizer written in C++ using the android native glue.
 
 COMPILE and INSTALL:
   You need android sdk, android ndk, and ant. 
@@ -20,7 +20,6 @@ FEATURES:
   (4) Moving the position of the light source.
 
 TODO:
-  (1) Surface texture.
-  (2) Color by survey / altitude.
-  (3) Wall rendering.
-  (4) Loch file support.
+  (1) Color by survey / altitude.
+  (2) Wall rendering.
+  (3) Moving the camera (viewpoint)
