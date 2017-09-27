@@ -16,68 +16,68 @@ void android_handle_cmd( struct android_app * s, int32_t cmd )
     case APP_CMD_INPUT_CHANGED:
       break;
     case APP_CMD_INIT_WINDOW:
-      LOGI("INIT WINDOW");
+      // LOGI("INIT WINDOW");
       r = Renderer::Instance();
       if ( r != NULL ) r->InitRenderer( s );
       Android::SetRender( true );
       break;
     case APP_CMD_TERM_WINDOW:
-      LOGI("TERM WINDOW");
+      // LOGI("TERM WINDOW");
       Android::SetRender( false );
       r = Renderer::Instance();
       if ( r != NULL ) r->DestroyRenderer();
       break;
     case APP_CMD_WINDOW_RESIZED:
-      LOGI("WINDOW RESIZED");
+      // LOGI("WINDOW RESIZED");
       Android::SetRender( true );
       break;
     case APP_CMD_WINDOW_REDRAW_NEEDED:
-      LOGI("WINDOW REDRAW NEEDED");
+      // LOGI("WINDOW REDRAW NEEDED");
       break;
     case APP_CMD_CONTENT_RECT_CHANGED:
       break;
     case APP_CMD_GAINED_FOCUS:
-      LOGI("GAIN FOCUS");
+      // LOGI("GAIN FOCUS");
       Android::SetFocus( true );
       break;
     case APP_CMD_LOST_FOCUS:
-      LOGI("LOST FOCUS");
+      // LOGI("LOST FOCUS");
       Android::SetFocus( false );
       break;
     case APP_CMD_CONFIG_CHANGED:
       break;
     case APP_CMD_LOW_MEMORY:
-      LOGI("LOW MEMORY");
+      // LOGI("LOW MEMORY");
       break;
     case APP_CMD_START:
-      LOGI("START"); // cannot InitRenderer here
+      // LOGI("START"); // cannot InitRenderer here
       Android::ClearClosing( );
       break;
     case APP_CMD_RESUME:
-      LOGI("RESUME");
+      // LOGI("RESUME");
       Android::SetPaused( false );
       sendEvent( RESUME_EVENT );
       break;
     case APP_CMD_SAVE_STATE:
       break;
     case APP_CMD_PAUSE:
-      LOGI("PAUSE");
+      // LOGI("PAUSE");
       Android::SetPaused( true  );
       sendEvent( PAUSE_EVENT );
       break;
     case APP_CMD_STOP:
-      LOGI("STOP");
+      // LOGI("STOP");
       // Android::SetClosing( true  );
       // r = Renderer::Instance();
       // if ( r != NULL ) r->DestroyRenderer();
       break;
     case APP_CMD_DESTROY:
-      LOGI("DESTROY");
+      // LOGI("DESTROY");
       // Renderer::ReleaseInstance();
       ANativeActivity_finish( s->activity );
       break;
     default:
-      LOGI("UNKNOWN CMD %d ", cmd );
+      LOGW("UNKNOWN CMD %d ", cmd );
   }
 }
 
@@ -110,7 +110,7 @@ int32_t android_handle_input_event( struct android_app * s, AInputEvent * evt )
             //   LOGI("key SEARCH");
             //   break;
             default:
-              LOGI("key %d ", key );
+              LOGW("unhandled key %d ", key );
           }
         }
       }
@@ -125,16 +125,16 @@ int32_t android_handle_input_event( struct android_app * s, AInputEvent * evt )
         // state->SetMode( np );
         if ( onMenu ) {
           if ( np == 1 && action == AMOTION_EVENT_ACTION_DOWN ) {
-            float x0 = AMotionEvent_getX( evt, 0 );
-            float y0 = AMotionEvent_getY( evt, 0 );
-            // LOGI(" x0 %.2f y0 %.2f ", x0, y0 );
-            if ( x0 > 1100 ) {
+            float x0 = AMotionEvent_getX( evt, 0 ) / (float)(Renderer::Instance()->Width());
+            float y0 = AMotionEvent_getY( evt, 0 ) / (float)(Renderer::Instance()->Height());
+            // LOGI(" x0 %.2f y0 %.2f", x0, y0 );
+            if ( x0 > 0.9 ) {
               r = Renderer::Instance();
-              if ( y0 < 740 && y0 > 690 ) {
+              if ( y0 < 0.95 && y0 > 0.80 ) {
                 if ( r != NULL ) r->ToggleStations();
-              } else if ( y0 < 490 && y0 > 440 ) {
+              } else if ( y0 < 0.65 && y0 > 0.50 ) {
                 if ( r != NULL ) r->ToggleSplays();
-              } else if ( y0 < 280 && y0 > 230 ) {
+              } else if ( y0 < 0.35 && y0 > 0.20 ) {
                 if ( r != NULL ) r->ToggleSurface();
               }
             }
@@ -166,14 +166,14 @@ int32_t android_handle_input_event( struct android_app * s, AInputEvent * evt )
                 }
                 return 1;
               default:
-                LOGI("android motion event unhandled action %d", action );
+                LOGW("android motion event unhandled action %d", action );
             }
           }
         }
       }
       break;
     default:
-      LOGI("android input event unhandled type %d ", type );
+      LOGW("android input event unhandled type %d ", type );
   }
   return 0; // not handled
 }

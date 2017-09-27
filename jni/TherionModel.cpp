@@ -40,7 +40,7 @@
 
 TherionModel::~TherionModel()
 {
-  LOGI("TherionModel::dstr()" );
+  // LOGI("TherionModel::dstr()" );
   if ( vertex ) delete[] vertex;
   if ( index ) delete[] index;
   if ( station_name ) {
@@ -156,13 +156,13 @@ TherionModel::InitFromTh( const char * filename )
     int kf = 0;
     while ( kf < therion_ns && ths[k]->From() != thst[kf]->Name() ) ++kf;
     if ( kf >= therion_ns ) {
-      LOGI("ERROR From station not found %s", ths[k]->From().c_str() );
+      LOGW("ERROR From station not found %s", ths[k]->From().c_str() );
       continue;
     }
     int kt = 0;
     while ( kt < therion_ns && ths[k]->To() != thst[kt]->Name() ) ++kt;
     if ( kt >= therion_ns ) {
-      LOGI("ERROR To station not found %s", ths[k]->From().c_str() );
+      LOGW("ERROR To station not found %s", ths[k]->From().c_str() );
       continue;
     }
     index[2*k+0] = (unsigned short)kf;
@@ -172,7 +172,7 @@ TherionModel::InitFromTh( const char * filename )
     int kf = 0;
     while ( kf < therion_ns && thx[k]->From() != thst[kf]->Name() ) ++kf;
     if ( kf >= therion_ns ) {
-      LOGI("ERROR From station not found %s", ths[k]->From().c_str() );
+      LOGW("ERROR From station not found %s", ths[k]->From().c_str() );
       continue;
     } 
     int kt = therion_ns + k;

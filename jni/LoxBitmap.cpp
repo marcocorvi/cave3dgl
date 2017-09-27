@@ -47,7 +47,7 @@ bool isJPG( unsigned char * data )
 void
 LoxBitmap::Data2RGB()
 {
-  LOGI("Lox BItmap data2rgb type %d", type);
+  // LOGI("Lox BItmap data2rgb type %d", type);
   // FILE * fp = tmpfile();
   // if ( fp == NULL ) {
   //   LOGW("Cannot create temp file");
@@ -67,7 +67,7 @@ LoxBitmap::Data2RGB()
   if ( img != NULL && img->open( data, size ) ) {
     width  = img->width();
     height = img->height();
-    LOGI("Lox bitmap image %dx%d stride %d BPP %d", width, height, img->stride(), img->BPP() );
+    // LOGI("Lox bitmap image %dx%d stride %d BPP %d", width, height, img->stride(), img->BPP() );
     unsigned char * image = img->image();
     red   = new unsigned char[ width * height ];
     green = new unsigned char[ width * height ];
@@ -83,5 +83,5 @@ LoxBitmap::Data2RGB()
   } else {
     LOGW("LoxBitmap failed to read image data");
   }
-  LOGI("Lox bitmap %dx%d ", width, height );
+  // LOGI("Lox bitmap %dx%d ", width, height );
 }      

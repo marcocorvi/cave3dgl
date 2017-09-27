@@ -18,7 +18,7 @@ Image_JPG::open(const char * filename)
 {
   FILE * fp;
   if ( (fp = fopen (filename, "rb")) == NULL) {
-    LOGI("Image_pgm: unable to open file: %s\n", filename);
+    // LOGI("Image_pgm: unable to open file: %s\n", filename);
     return false;
   }
   bool ret = open( fp );

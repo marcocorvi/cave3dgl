@@ -44,7 +44,7 @@ StationTexture::StationTexture( int ns, Geometry * geom, const char ** names, un
   geometry.SetNCol( 1 );  // not used
   geometry.SetNTex( 2 );  // nr. texture coord elements
   geometry.SetVertexStride( sizeof(float) * 5 );
-  LOGI("Station Texture nr. stations %d", nStation );
+  // LOGI("Station Texture nr. stations %d", nStation );
   for ( int k=0; k<nStation; ++k ) {
     if ( names[k] == NULL ) {
       LOGW("WARNING station %d / %d has NULL name", k, nStation );

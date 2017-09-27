@@ -56,8 +56,8 @@ class TherionFile
 
     TherionSurvey * GetSurvey( const std::string & name ) { return GetSurvey( name.c_str() ); }
 
-    void DumpStations() const;
-    void DumpShots() const;
+    // void DumpStations() const;
+    // void DumpShots() const;
 
     float GetCaveDepth() { return zmax - zmin; }
     float GetCaveLength() { return mCaveLength; }

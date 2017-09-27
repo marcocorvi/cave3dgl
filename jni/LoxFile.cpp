@@ -107,7 +107,7 @@ LoxFile::ReadChunk( FILE * fp )
   if ( fread( &(c->rec_size),  SIZE32, 1, fp ) != 1 ) return EOF;
   if ( fread( &(c->rec_cnt),   SIZE32, 1, fp ) != 1 ) return EOF;
   if ( fread( &(c->data_size), SIZE32, 1, fp ) != 1 ) return EOF;
-  LOGI("Type %d RecSize %d RecCnt %d DataSize %d", c->type, c->rec_size, c->rec_cnt, c->data_size );
+  // LOGI("Type %d RecSize %d RecCnt %d DataSize %d", c->type, c->rec_size, c->rec_cnt, c->data_size );
   if ( c->rec_size > 0 ) {
     c->records = (void *)malloc( c->rec_size );
     fread( c->records, 1, c->rec_size, fp );
@@ -116,7 +116,7 @@ LoxFile::ReadChunk( FILE * fp )
     c->data = (void *)malloc( c->data_size );
     fread( c->data, 1, c->data_size, fp );
   }
-  LOGI("Read: %d bytes", 4 * SIZE32 + c->rec_size + c->data_size );
+  // LOGI("Read: %d bytes", 4 * SIZE32 + c->rec_size + c->data_size );
   return type;
 }
 
@@ -125,7 +125,7 @@ LoxFile::HandleSurvey( )
 {
   int i;
   int n0 = mSurveyChunk.rec_cnt;
-  LOGI("Handle Survey: Nr. %d ", n0 );
+  // LOGI("Handle Survey: Nr. %d ", n0 );
   uint32_t * recs = (uint32_t *)(mSurveyChunk.records);
   char * data = (char *)(mSurveyChunk.data);
   char name[128];
@@ -142,9 +142,9 @@ LoxFile::HandleSurvey( )
     if ( ts > 0 ) memcpy( title, data+tp, ts );
     title[ts] = 0;
     mSurveys.push_back( new LoxSurvey( id, pnt, name, title ) );
-    LOGI("%d / %d: Survey %d (parent %d) Name %d \"%s\" Title %d \"%s\"", i, n0, id, pnt, ns, name, ts, title );
+    // LOGI("%d / %d: Survey %d (parent %d) Name %d \"%s\" Title %d \"%s\"", i, n0, id, pnt, ns, name, ts, title );
   }
-  LOGI("Handle Survey done");
+  // LOGI("Handle Survey done");
 }
 
 
@@ -171,8 +171,8 @@ LoxFile::HandleStations( )
     double c2   = toLEndian( *((double*)(recs+off)) );   off += SIZEDBL;
     memcpy( name, data+np, ns );  name[ns] = 0;
     memcpy( comment, data+tp, ts ); comment[ts] = 0;
-    LOGI("Station %d (survey %d) Name \"%s\" Title \"%s\" Flags %d %.2f %.2f %.2f",
-      id, sid, name, comment, fl, c0, c1, c2 );
+    // LOGI("Station %d (survey %d) Name \"%s\" Title \"%s\" Flags %d %.2f %.2f %.2f",
+    //   id, sid, name, comment, fl, c0, c1, c2 );
     mStations.push_back( new LoxStation( id, sid, name, comment, fl, c0, c1, c2 ) );
   }
 }
@@ -206,9 +206,9 @@ LoxFile::HandleShots( )
     uint32_t sid= toLEndian( *((uint32_t*)(recs+off)) ); off += SIZE32;
     double tr   = toLEndian( *((double*)(recs+off)) );   off += SIZEDBL; // vthreshold
 
-    LOGI("Shot %d %d (%d) Flag %d Type %d thr %.2f", fr, to, sid, fl, ty, tr );
-    LOGI("  From-LRUD %.2f %.2f %.2f %.2f", f0, f1, f2, f3 );
-    LOGI("  To-LRUD %.2f %.2f %.2f %.2f", t0, t1, t2, t3 );
+    // LOGI("Shot %d %d (%d) Flag %d Type %d thr %.2f", fr, to, sid, fl, ty, tr );
+    // LOGI("  From-LRUD %.2f %.2f %.2f %.2f", f0, f1, f2, f3 );
+    // LOGI("  To-LRUD %.2f %.2f %.2f %.2f", t0, t1, t2, t3 );
 
     mShots.push_back( new LoxShot( fr, to, sid, fl, ty, tr, f0, f1, f2, f3, t0, t1, t2, t3 ) );
   }
@@ -232,8 +232,8 @@ LoxFile::HandleScraps( )
     uint32_t na = toLEndian( *((uint32_t*)(recs+off)) ); off += SIZE32;
     uint32_t ap = toLEndian( *((uint32_t*)(recs+off)) ); off += SIZE32;
     uint32_t as = toLEndian( *((uint32_t*)(recs+off)) ); off += SIZE32;
-    LOGI("Scrap %d (Survey %d) N.pts %d %d %d N.ang %d %d %d Size %d",
-      id, sid, np, pp, ps, na, ap, as, mScrapChunk.data_size );
+    // LOGI("Scrap %d (Survey %d) N.pts %d %d %d N.ang %d %d %d Size %d",
+    //   id, sid, np, pp, ps, na, ap, as, mScrapChunk.data_size );
     assert( pp + np * 3 * sizeof(double) == ap );
     assert( np * 3 * sizeof(double) == ps );
     assert( na * 3 * SIZE32 == as );
@@ -242,14 +242,14 @@ LoxFile::HandleScraps( )
       double x = ptr[3*i+0] = toLEndian( ptr[3*i + 0] );
       double y = ptr[3*i+1] = toLEndian( ptr[3*i + 1] );
       double z = ptr[3*i+2] = toLEndian( ptr[3*i + 2] );
-      LOGI("  Point %d: %.2f %.2f %.2f", i, x, y, z );
+      // LOGI("  Point %d: %.2f %.2f %.2f", i, x, y, z );
     }
     uint32_t * itr = (uint32_t *)( data + ap );
     for ( i=0; i<na; ++i ) {
       uint32_t x = itr[3*i+0] = toLEndian( itr[3*i + 0] );
       uint32_t y = itr[3*i+1] = toLEndian( itr[3*i + 1] );
       uint32_t z = itr[3*i+2] = toLEndian( itr[3*i + 2] );
-      LOGI("  3Angle %d: %d %d %d", i, x, y, z );
+      // LOGI("  3Angle %d: %d %d %d", i, x, y, z );
     }
 
     mScraps.push_back( new LoxScrap( id, sid, np, na, ptr, itr ) );
@@ -277,8 +277,8 @@ LoxFile::HandleSurface( )
   c[3]  = toLEndian( *((double*)(recs+off)) );   off += SIZEDBL;
   c[4]  = toLEndian( *((double*)(recs+off)) );   off += SIZEDBL;
   c[5]  = toLEndian( *((double*)(recs+off)) );   off += SIZEDBL;
-  LOGI("Surface %d %dx%d Calib %.2f %.2f %.2f %.2f %.2f %.2f",
-    id, ww, hh, c[0], c[1], c[2], c[3], c[4], c[5] );
+  // LOGI("Surface %d %dx%d Calib %.2f %.2f %.2f %.2f %.2f %.2f",
+  //   id, ww, hh, c[0], c[1], c[2], c[3], c[4], c[5] );
   int npts = ww * hh;
   assert( ds == npts * sizeof(double) );
   double * ptr = (double *)( data + dp );
@@ -309,8 +309,8 @@ LoxFile::HandleBitmap( )
   c[3]  = toLEndian( *((double*)(recs+off)) );   off += SIZEDBL;
   c[4]  = toLEndian( *((double*)(recs+off)) );   off += SIZEDBL;
   c[5]  = toLEndian( *((double*)(recs+off)) );   off += SIZEDBL;
-  LOGI("Bitmap %d Type %d Calib %.2f %.2f %.2f %.2f %.2f %.2f File off %d size %d",
-    id, tp, c[0], c[1], c[2], c[3], c[4], c[5], dp, ds );
+  // LOGI("Bitmap %d Type %d Calib %.2f %.2f %.2f %.2f %.2f %.2f File off %d size %d",
+  //   id, tp, c[0], c[1], c[2], c[3], c[4], c[5], dp, ds );
   // image file binary data
   unsigned char * img = data + dp;
   // LOGI("File %x %x %x %x %x %x %x %x", 
@@ -329,11 +329,11 @@ LoxFile::ReadFile( const char * filename )
   if ( fp == NULL ) {
     LOGW("Cannot open file \"%s\"\n", filename );
   } else {
-    LOGI("Lox read file \"%s\"", filename );
+    // LOGI("Lox read file \"%s\"", filename );
     bool repeat = true;
     do {
       uint32_t type = ReadChunk( fp );
-      LOGI("Read File: chunk type %d ", type );
+      // LOGI("Read File: chunk type %d ", type );
       switch ( type ) {
         case 1: // SURVEY
           HandleSurvey( );

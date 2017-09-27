@@ -56,7 +56,7 @@ Renderer::InitRenderer( android_app * s )
   // LOGI("Renderer::init() context OK ");
 
   if ( eglMakeCurrent( display, surface, surface, context ) == EGL_FALSE ) {
-    LOGI("WARNING: unable to EGL make current");
+    LOGW("WARNING: unable to EGL make current");
     return;
   }
   eglQuerySurface( display, surface, EGL_WIDTH, &width );
@@ -206,7 +206,7 @@ Renderer::AddShader( Shader * s )
   if ( ! initialized || s == NULL ) return;
   for ( ShaderVectorIterator it=shaders.begin(); it != shaders.end(); ++it ) {
     if ( (*it) == s ) {
-      LOGI("WARNING Renderer::Add Shader() %s already there", s->Name() );
+      LOGW("WARNING Renderer::Add Shader() %s already there", s->Name() );
       return;
     }
   }

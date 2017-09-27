@@ -11,7 +11,7 @@ bool
 Application::Initialize()
 {
   if ( initialized ) {
-    LOGI("Application::Initialize() alredy initialized");
+    // LOGI("Application::Initialize() alredy initialized");
     return true;
   }
  
@@ -29,7 +29,7 @@ Application::Initialize()
   // TODO ret &= m_kernel.AddTask(Timer::Instance());
   renderer = Renderer::Instance();
   if ( renderer ) {
-    // renderer->InitRenderer( androidTask.GetState() ); // initialize later on INIT_WINDOW
+    // renderer->InitRenderer( &androidTask, androidTask.GetState() ); // initialize later on INIT_WINDOW
     ret &= kernel.AddTask( renderer );
   }
   initialized = ret;

@@ -9,23 +9,23 @@ int survey_pos[50]; // FIXME max 50 levels
 int ks = 0;
 
 
-void 
-TherionFile::DumpStations() const
-{
-  for ( std::vector<TherionStation *>::const_iterator it = stations.begin(); it != stations.end(); ++it ) {
-    TherionStation * st = *it;
-    LOGI( "Station %s %.2f %.2f %.2f", st->Name().c_str(), st->E(), st->N(), st->Z() );
-  }
-}
-
-void 
-TherionFile::DumpShots() const
-{
-  for ( std::vector< TherionShot * >::const_iterator it = shots.begin(); it != shots.end(); ++it ) {
-    TherionShot * sh = *it;
-    LOGI( "Shot %s %s %.2f %.1f %.1f", sh->From().c_str(), sh->To().c_str(), sh->Length(), sh->Bering(), sh->Clino() );
-  }
-}
+// void 
+// TherionFile::DumpStations() const
+// {
+//   for ( std::vector<TherionStation *>::const_iterator it = stations.begin(); it != stations.end(); ++it ) {
+//     TherionStation * st = *it;
+//     LOGI( "Station %s %.2f %.2f %.2f", st->Name().c_str(), st->E(), st->N(), st->Z() );
+//   }
+// }
+// 
+// void 
+// TherionFile::DumpShots() const
+// {
+//   for ( std::vector< TherionShot * >::const_iterator it = shots.begin(); it != shots.end(); ++it ) {
+//     TherionShot * sh = *it;
+//     LOGI( "Shot %s %s %.2f %.1f %.1f", sh->From().c_str(), sh->To().c_str(), sh->Length(), sh->Bering(), sh->Clino() );
+//   }
+// }
 
 TherionSurvey * 
 TherionFile::GetSurvey( const char * name )
@@ -208,7 +208,7 @@ TherionFile::TherionFile( const std::string & filename )
       can_render = true;
     }
   } else {
-    LOGI("FAILED ReadFile %s", filename.c_str() );
+    LOGW("FAILED ReadFile %s", filename.c_str() );
   }
 }
 
@@ -256,7 +256,7 @@ TherionFile::ProcessShots()
             if ( sh->FromStation() == NULL ) {
               sh->SetFromStation( s );
             } else if ( sh->FromStation() != s ) {
-              LOGI( "ERROR shot %s %s FROM station mismatch", sh->From().c_str(), sh->To().c_str() );
+              LOGW( "ERROR shot %s %s FROM station mismatch", sh->From().c_str(), sh->To().c_str() );
             }
           } 
           if ( sh->To() == s->Name() )   {
@@ -264,7 +264,7 @@ TherionFile::ProcessShots()
             if ( sh->ToStation() == NULL ) {
               sh->SetToStation( s );
             } else if ( sh->ToStation() != s ) {
-              LOGI( "ERROR shot %s %s TO station mismatch", sh->From().c_str(), sh->To().c_str() );
+              LOGW( "ERROR shot %s %s TO station mismatch", sh->From().c_str(), sh->To().c_str() );
             }
           }
           if ( sf != NULL && st != NULL ) break;
@@ -370,7 +370,7 @@ TherionFile::ReadFile( const std::string & filename,
 
   FILE * br = fopen( filename.c_str(), "r" );
   if ( br == NULL ) {
-    LOGI("ERROR cannot open file in read mode");
+    LOGW("ERROR cannot open file in read mode");
     return false;
   }
 

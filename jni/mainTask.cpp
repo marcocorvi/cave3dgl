@@ -89,7 +89,7 @@ mainTask::AddStationsToModel( Geometry * geom )
   // LOGI( "mainTask::Add Stations To Model() comps %d ", modelObject.GetNrComponents() );
   TherionModel * model = dynamic_cast< TherionModel * >( geom );
   if ( model == NULL ) {
-    LOGI("WARNING NULL model");
+    LOGW("WARNING NULL model");
     return NULL;
   }
   const char ** name = model->GetStations();
@@ -111,12 +111,12 @@ mainTask::AddSurfaceToModel( Geometry * geom )
   // LOGI( "mainTask::Add Surface To Model() comps %d ", modelObject.GetNrComponents() );
   TherionModel * model = dynamic_cast< TherionModel * >( geom );
   if ( model == NULL ) {
-    LOGI("WARNING NULL model");
+    LOGW("WARNING NULL model");
     return NULL;
   }
   const float * s = model->GetDEM();
   if ( s == NULL ) {
-    LOGI("WARNING NULL surface");
+    LOGW("WARNING NULL surface");
     return NULL;
   }
   SurfaceComponent * surface_component = modelObject.AddComponent< SurfaceComponent >( "surface" );
@@ -290,7 +290,7 @@ mainTask::Start()
   if ( shader ) {
     Renderer::Instance()->AddShader( shader );
   } else {
-    LOGI("WARNING null transform shader");
+    LOGW("WARNING null transform shader");
   }
   // LOGI( "mainTask::Start() done" );
   return true;
