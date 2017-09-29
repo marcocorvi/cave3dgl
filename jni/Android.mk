@@ -27,6 +27,7 @@ Shader.cpp \
 TransformShader.cpp \
 TextureShader.cpp \
 SurfaceShader.cpp \
+PointShader.cpp \
 UserFile.cpp \
 Surface.cpp \
 Texture.cpp \
@@ -39,12 +40,14 @@ EventManager.cpp \
 RenderableComponent.cpp \
 TransformComponent.cpp \
 StatusComponent.cpp \
+SplayPointComponent.cpp \
 MenuComponent.cpp \
 StationsComponent.cpp \
 SurfaceComponent.cpp \
 Geometry.cpp \
 Model.cpp \
 TherionModel.cpp \
+SplayPoints.cpp \
 LoxFile.cpp \
 LoxBitmap.cpp \
 TherionFile.cpp \

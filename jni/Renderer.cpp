@@ -21,6 +21,7 @@ Renderer::InitRenderer( android_app * s )
   if ( initialized ) return;
 
   state = s;
+  DoPoints = false;
   display = eglGetDisplay( EGL_DEFAULT_DISPLAY );
   eglInitialize( display, NULL, NULL );
   // LOGI("Renderer::init() display OK ");
@@ -165,8 +166,20 @@ Renderer::Draw( Renderable * r )
     case FLAG_MENU:
       glDrawElements( g->GetType(), g->NIndex(), GL_UNSIGNED_SHORT, g->Index() );
       break;
+    case FLAG_POINTS:
+      glDrawElements( g->GetType(), g->NIndex(), GL_UNSIGNED_SHORT, g->Index() );
+      // glDrawArrays( g->GetType(), 0, g->NIndex() );
+      // {
+      //   int nv = 3*g->NVertex();
+      //   float * v = (float *)g->Vertex();
+      //   glBegin( GL_POINTS );
+      //   glPointSize( 10.0f );
+      //   for ( int k=0; k<nv; k+=3 ) glVertex3f( v[k], v[k+1], v[k+2] );
+      //   glEnd();
+      // }
+      break;
     case FLAG_SURFACE:
-      glDrawElements( g->GetType(), g->NIndex() , GL_UNSIGNED_SHORT, g->Index() );
+      glDrawElements( g->GetType(), g->NIndex(), GL_UNSIGNED_SHORT, g->Index() );
       break;
     case FLAG_LINE:
     case FLAG_NONE:
@@ -175,8 +188,8 @@ Renderer::Draw( Renderable * r )
       glDrawElements( g->GetType(), off, GL_UNSIGNED_SHORT, g->Index() );
       if ( (flag & FLAG_SPLAYS) != FLAG_SPLAYS ) {
         glLineWidth( 2.0f );
-        void * splay = (void*)(((unsigned short *)g->Index())+off);
-        glDrawElements( g->GetType(), g->NIndex() - off , GL_UNSIGNED_SHORT, splay );
+        void * splay = (void*)(((unsigned short *)g->Index())+off); // indexes of splays
+        glDrawElements( g->GetType(), g->NIndex() - off, GL_UNSIGNED_SHORT, splay );
       }
       break;
   }

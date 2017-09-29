@@ -175,8 +175,7 @@ void
 Transform::Log() const
 {
   LOGI("T Center %.3f %.3f %.3f R %.2f %.2f",
-    m_translation.m_x, m_translation.m_y, m_translation.m_z,
-    angleT, angleP );
+    m_translation.m_x, m_translation.m_y, m_translation.m_z, angleT, angleP );
 }
 
 void 

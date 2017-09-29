@@ -49,6 +49,7 @@ class Renderer : public Singleton<Renderer>
     EGLDisplay    display;
     EGLContext    context;
     EGLSurface    surface;
+    bool          DoPoints;
     int           width;
     int           height;
     float         aspect; // aspect-ratio H / W
@@ -119,7 +120,18 @@ class Renderer : public Singleton<Renderer>
 
     void ToggleStations() { flag ^= FLAG_STATIONS; }
     void ToggleSurface()  { flag ^= FLAG_SURFACE; }
-    void ToggleSplays()   { flag ^= FLAG_SPLAYS; }
+    void ToggleTheSplays() { flag ^= FLAG_SPLAYS; }
+    void ToggleThePoints() { flag ^= FLAG_POINTS; }
+    void ToggleSplays()
+    {
+      if ( DoPoints ) {
+        DoPoints = false;
+        ToggleThePoints();
+      } else {
+        DoPoints = true;
+        ToggleTheSplays();
+      }
+    }
 
   public:
     ~Renderer()

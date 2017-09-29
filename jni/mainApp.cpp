@@ -32,8 +32,15 @@ bool mainApp::Initialize()
   std::string filename = "";
 
   state->activity->vm->AttachCurrentThread( &env, 0 );
-  jobject me = state->activity->clazz;
-  jclass acl = env->GetObjectClass( me );
+  jobject me = state->activity->clazz;     // NativeActivity object handle
+  jclass acl = env->GetObjectClass( me );  // class NativeActivity
+
+  jmethodID jmid = env->GetMethodID( acl, "getApplicationContext", "()Landroid/content/Context;" );
+  jobject context = env->CallObjectMethod( me, jmid );
+  if ( context != NULL ) {
+    LOGI("main app got context");
+  }
+
   jmethodID giid = env->GetMethodID( acl, "getIntent", "()Landroid/content/Intent;" );
   jobject intent = env->CallObjectMethod( me, giid );
   if ( intent != NULL ) {

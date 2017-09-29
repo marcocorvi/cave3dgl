@@ -14,11 +14,12 @@ class Shader
   protected:
     GLuint vertexShaderId;
     GLuint fragmentShaderId;
-    // GLint  programId; 
+    // GLuint geometryShaderId;
     GLuint programId; 
 
     std::string vertexShaderCode;
     std::string fragmentShaderCode;
+    // std::string geometryShaderCode;
 
     bool linked;
     std::string name;
@@ -27,6 +28,7 @@ class Shader
     Shader( const char * n )
       : vertexShaderId(GL_INVALID_VALUE)
       , fragmentShaderId(GL_INVALID_VALUE)
+      // , geometryShaderId(GL_INVALID_VALUE)
       , programId(GL_INVALID_VALUE)
       , linked( false )
       , name( n )

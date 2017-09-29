@@ -9,7 +9,7 @@
 #include "Log.h"
 
 class StationsComponent : public Component
-                      , public EventHandler
+                        , public EventHandler
 {
   private:
     static const unsigned int s_id = 3;

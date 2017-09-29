@@ -104,5 +104,9 @@ class Geometry
 
   protected:
     void InitBBox();
+
+    void CopyBBox( const Geometry * geom );
+    void CopySpec( const Geometry * geom );
+    
 };
 #endif

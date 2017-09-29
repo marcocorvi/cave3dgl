@@ -118,6 +118,8 @@ TherionModel::InitFromTh( const char * filename )
   station_name = new char * [therion_ns];
   vertex = new float[ 3 * (therion_ns + therion_nx) ];
   index  = new unsigned short[ 2 * (therion_nl + therion_nx) ];
+  float * svertex = vertex + (3 * therion_ns);        // N.B. offset by NR STATIONS
+  unsigned short * sindex = index + (2 * therion_nl); //      offset by NR LEGS
 
   std::vector< TherionStation * > & thst = thf.GetStations();
   std::vector< TherionShot * > & ths = thf.GetShots();
@@ -147,9 +149,9 @@ TherionModel::InitFromTh( const char * filename )
   for ( int k=0; k<therion_nx; ++k ) {
     // FIXME this assumes that splays have FROM station
     TherionStation * st = thx[k]->GetStationFromStation( thx[k]->FromStation() );
-    vertex[3*(therion_ns+k)+0] = SIGN_X( ( st->Z() - x_offset ) * scale );
-    vertex[3*(therion_ns+k)+1] = SIGN_Y( ( st->E() - y_offset ) * scale );
-    vertex[3*(therion_ns+k)+2] = SIGN_Z( ( st->N() - z_offset ) * scale ) + 100.0f;
+    svertex[3*k+0] = SIGN_X( ( st->Z() - x_offset ) * scale );
+    svertex[3*k+1] = SIGN_Y( ( st->E() - y_offset ) * scale );
+    svertex[3*k+2] = SIGN_Z( ( st->N() - z_offset ) * scale ) + 100.0f;
     delete st;
   }
   for ( int k=0; k<therion_nl; ++k ) {
@@ -175,9 +177,9 @@ TherionModel::InitFromTh( const char * filename )
       LOGW("ERROR From station not found %s", ths[k]->From().c_str() );
       continue;
     } 
-    int kt = therion_ns + k;
-    index[2*(therion_nl+k)+0] = (unsigned short)kf;
-    index[2*(therion_nl+k)+1] = (unsigned short)kt;
+    int kt = therion_ns + k; // offset by NR STATIONS
+    sindex[2*k+0] = (unsigned short)kf;
+    sindex[2*k+1] = (unsigned short)kt;
   }
   // LOGI("Station %d Shots %d Splays %d\n", therion_ns, therion_nl, therion_nx );
 

@@ -1,47 +1,64 @@
-#include "TransformShader.h"
+#include "PointShader.h"
 
 #include "Log.h"
 #include "Geometry.h"
 #include "Renderable.h"
 #include "Renderer.h"
 
-TransformShader::TransformShader( float s )
-  : Shader( "transform" )
+PointShader::PointShader( float s )
+  : Shader( "point" )
   , scale( s )
 {
-  // LOGI( "TransformShader::cstr()");
+  // LOGI( "PointShader::cstr()");
+  // geometryShaderCode = 
+  //   "layout(points) in; \n"
+  //   "layout(line_strip, max_vertices=2) out; \n"
+  //   "void main() { \n"
+  //   "  gl_Position = gl_in[0].gl_Position + vec4(-0.1, 0.0, 0.0, 0.0); \n"
+  //   "  EmitVertex(); \n";
+  //   "  gl_Position = gl_in[0].gl_Position + vec4( 0.1, 0.0, 0.0, 0.0); \n"
+  //   "  EmitVertex(); \n"
+  //   "  EndPrimitive(); \n"
+  //   "} \n";
+
   vertexShaderCode = 
-    "uniform mat4 u_mModel; \n"
+    "uniform mat4 u_mPoint; \n"
     "attribute vec4 a_vPosition; \n"
+    "varying vec4 vColor; \n"
     "void main() { \n"
-    "  gl_Position = u_mModel * a_vPosition; \n"
+    "  gl_PointSize = 10.0; \n"
+    "  gl_Position = u_mPoint * a_vPosition; \n"
+    "  vColor = gl_Position; \n" // gl_Color
     "} \n";
+
   fragmentShaderCode = 
     "precision highp float; \n"
-    "uniform vec4 a_vColor; \n"
+    "varying vec4 vColor; \n"
     "void main() { \n"
-    "  gl_FragColor = a_vColor; \n"
+    "  gl_FragColor.r = \n"
+    "  gl_FragColor.g = \n"
+    "  gl_FragColor.b = vColor.b/20.0; \n"
     "  gl_FragColor.a = 1.0; \n"
     "} \n";
 }
 
 void
-TransformShader::LinkShader()
+PointShader::LinkShader()
 {
   if ( linked ) return;
   Shader::LinkShader();
 
-  transformHandle = glGetUniformLocation( programId, "u_mModel" );
+  transformHandle = glGetUniformLocation( programId, "u_mPoint" );
   posHandle = glGetAttribLocation( programId, "a_vPosition" );
   colHandle = glGetAttribLocation( programId, "a_vColor" );
 
   proj = Renderer::Instance()->Projection();
 
-  // LOGI( "TransformShader::link %s scale %.2f handles %d %d %d", Name(), scale, transformHandle, posHandle, colHandle );
+  // LOGI( "PointShader::link %s scale %.2f handles %d %d %d", Name(), scale, transformHandle, posHandle, colHandle );
 }
 
 void
-TransformShader::SetupShader( Renderable & renderable )
+PointShader::SetupShader( Renderable & renderable )
 {
   // LOGI( "TransformShader::Setup()");
   Geometry * g = renderable.GetGeometry();

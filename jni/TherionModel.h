@@ -14,7 +14,7 @@ class TherionModel : public Geometry
   private:
     StationMap stations;
     char ** station_name;
-    float * vertex; // stations positions
+    float * vertex;  // stations positions
 
     // each DEM point has 9 values: 3 pos. coords, 3 normal comps., 3 texture color comps
     float * dem; // dem points;
@@ -23,6 +23,8 @@ class TherionModel : public Geometry
     int dem_stride; // DEM vertex stride
 
     unsigned short * index;
+
+  public:
     int therion_ns; // nr. of stations
     int therion_nl; // nr. of legs
     int therion_nx; // nr. of splays

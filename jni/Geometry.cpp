@@ -4,6 +4,31 @@
 
 
 void 
+Geometry::CopyBBox( const Geometry * geom )
+{
+  xmax = geom->xmax;  xmin = geom->xmin;
+  ymax = geom->ymax;  ymin = geom->ymin;
+  zmax = geom->zmax;  zmin = geom->zmin;
+  xc = geom->xc;
+  yc = geom->yc;
+  zc = geom->zc;
+}
+
+void 
+Geometry::CopySpec( const Geometry * geom )
+{
+  vertexStride = geom->vertexStride;
+  nVertex = geom->nVertex;
+  nIndex  = geom->nIndex;
+  nPos    = geom->nPos;
+  nCol    = geom->nCol;
+  nTex    = geom->nTex;
+  nStations = geom->nStations;
+  vertex  = geom->vertex;
+  index   = geom->index;
+}
+
+void 
 Geometry::InitBBox()
 {
   float * v = (float *)vertex;

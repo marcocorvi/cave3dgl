@@ -12,6 +12,7 @@
 #include "MenuComponent.h"
 #include "SurfaceShader.h"
 #include "RenderableComponent.h"
+#include "SplayPointComponent.h"
 #include "Renderable.h"
 #include "Renderer.h"
 #include "Transform.h"
@@ -19,7 +20,6 @@
 #include "Events.h"
 #include "EventManagerFcts.h"
 
-#include "TransformShader.h"
 // #include "BasicShader.h"
 // #include "SimpleShader.h"
 
@@ -32,8 +32,11 @@ mainTask::mainTask(const unsigned int priority, const char * filename )
   , EventHandler( "main" )
   , filepath( filename ? filename : "" )
   , geometry( NULL )
-  , shader( NULL )
+  , transformShader( NULL )
+  , pointShader( NULL )
+  , surfaceShader( NULL )
   , stations( NULL )
+  , splayPoints( NULL )
   , surface( NULL )
   , scale( 1.0f )
 {
@@ -43,7 +46,7 @@ mainTask::mainTask(const unsigned int priority, const char * filename )
 Geometry *
 mainTask::AddRenderableToModel()
 {
-  // LOGI( "mainTask::Add Renderable To Model() comps %d ", modelObject.GetNrComponents() );
+  // LOGI( "mainTask::Add Renderable To Model() comps %d ", model Object.GetNrComponents() );
   RenderableComponent * renderable_component = modelObject.AddComponent< RenderableComponent >( "renderable" );
   if ( renderable_component ) {
     Renderable & renderable = renderable_component->GetRenderable();
@@ -61,7 +64,7 @@ mainTask::AddRenderableToModel()
     float dy = geometry->YMax() - geometry->YMin();
     scale = ( 0.1f + (( dx > dy )? dx : dy ) );
 
-    shader = new TransformShader( scale );
+    transformShader = new TransformShader( scale );
 
     Vector4 & color = renderable.GetAmbientColor();
     color.m_x = 0; // RGBA non-normalized
@@ -71,11 +74,12 @@ mainTask::AddRenderableToModel()
     // renderable.SetAmbientColor( color );
 
     renderable.SetGeometry( geometry );
-    renderable.SetShader( shader );
+    renderable.SetShader( transformShader );
 
     // FIXME
     // Renderer::Instance()->AddRenderable( &renderable );
     // LOGI("done add model");
+
     return geometry;
   } else {
     LOGW( "mainTask::Add Renderable To Model() null renderable component" );
@@ -83,10 +87,28 @@ mainTask::AddRenderableToModel()
   return NULL;
 }
 
+SplayPoints *
+mainTask::AddSplayPointsToModel( Geometry * geom )
+{
+  TherionModel * model = dynamic_cast< TherionModel * >( geom );
+  if ( model == NULL ) {
+    LOGW("WARNING NULL model");
+    return NULL;
+  }
+  // LOGI( "mainTask add splays");
+  SplayPointComponent * points_component = modelObject.AddComponent< SplayPointComponent >( "splay_points" );
+  if ( points_component ) {
+    pointShader = new PointShader( scale );
+    splayPoints = new SplayPoints( model, pointShader );
+    points_component->SetSplayPoints( splayPoints );
+  }
+  return splayPoints;
+}
+
 Stations *
 mainTask::AddStationsToModel( Geometry * geom )
 {
-  // LOGI( "mainTask::Add Stations To Model() comps %d ", modelObject.GetNrComponents() );
+  // LOGI( "mainTask::Add Stations To Model() comps %d ", model Object.GetNrComponents() );
   TherionModel * model = dynamic_cast< TherionModel * >( geom );
   if ( model == NULL ) {
     LOGW("WARNING NULL model");
@@ -122,8 +144,8 @@ mainTask::AddSurfaceToModel( Geometry * geom )
   SurfaceComponent * surface_component = modelObject.AddComponent< SurfaceComponent >( "surface" );
   if ( surface_component ) {
     // NOTE use the mainTask' shader
-    Shader * shader = new SurfaceShader( );
-    surface = new Surface( s, model->GetDEMCols(), model->GetDEMRows(), model->GetDEMStride(), shader );
+    surfaceShader = new SurfaceShader( );
+    surface = new Surface( s, model->GetDEMCols(), model->GetDEMRows(), model->GetDEMStride(), surfaceShader );
     surface_component->SetSurface( surface );
   }
   // LOGI("done add surface");
@@ -189,6 +211,9 @@ mainTask::AttachEventHandlers()
   MenuComponent * menu_component = component_cast< MenuComponent >( modelObject );
   if ( menu_component ) attachEvent( PRERENDER_EVENT, *menu_component );
 
+  SplayPointComponent * splayPoint_component = component_cast< SplayPointComponent >( modelObject );
+  if ( splayPoint_component ) attachEvent( RENDER_EVENT, *splayPoint_component );
+
   StationsComponent * station_component = component_cast< StationsComponent >( modelObject );
   if ( station_component ) {
     attachEvent( POSTMOTION_EVENT, *station_component );
@@ -217,6 +242,9 @@ mainTask::DetachEventHandlers()
     detachEvent( PRERENDER_EVENT, *station_component );
     detachEvent( POSTMOTION_EVENT, *station_component );
   }
+
+  SplayPointComponent * splayPoint_component = component_cast< SplayPointComponent >( modelObject );
+  if ( splayPoint_component ) detachEvent( RENDER_EVENT, *splayPoint_component );
 
   MenuComponent * menu_component = component_cast< MenuComponent >( modelObject );
   if ( menu_component ) detachEvent( PRERENDER_EVENT, *menu_component );
@@ -249,8 +277,8 @@ mainTask::~mainTask()
 {
   // LOGI( "mainTask dstr" );
   DetachEventHandlers();
-  // if ( shader ) {
-  //   Renderer::Instance()->RemoveShader( shader );
+  // if ( transformShader ) {
+  //   Renderer::Instance()->RemoveShader( transformShader );
   // }
 
   // RenderableComponent * renderable_component = component_cast< RenderableComponent >( modelObject );
@@ -260,9 +288,13 @@ mainTask::~mainTask()
   //   renderable.SetShader( NULL );
   // }
 
-  if ( shader   ) delete shader;
+  if ( transformShader   ) delete transformShader;
+  if ( pointShader )       delete pointShader;
+  if ( surfaceShader )     delete surfaceShader;
+
   if ( geometry ) delete geometry;
   if ( stations ) delete stations;
+  if ( splayPoints ) delete splayPoints;
   if ( surface  ) delete surface;
 }
 
@@ -276,7 +308,7 @@ mainTask::Start()
   // at this point mainTask has a pointe to the MVP matrix (inside the TransformShader)
 
   AddStationsToModel( geom );
-
+  AddSplayPointsToModel( geom );
   AddSurfaceToModel( geom );
 
   Status * status = AddStatusToModel(); 
@@ -287,11 +319,13 @@ mainTask::Start()
 
   AttachEventHandlers( );  // must come after the previous two
 
-  if ( shader ) {
-    Renderer::Instance()->AddShader( shader );
-  } else {
-    LOGW("WARNING null transform shader");
-  }
+  // IT IS NOT NECEESSARY TO ADD SHADERS TO THE RENDERER
+  // if ( transformShader ) {
+  //   Renderer::Instance()->AddShader( transformShader );
+  // } else {
+  //   LOGW("WARNING null transform shader");
+  // }
+
   // LOGI( "mainTask::Start() done" );
   return true;
 }

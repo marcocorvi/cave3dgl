@@ -24,6 +24,11 @@ Shader::LinkShader()
   if ( linked ) return;
   programId = glCreateProgram();
 
+  // if ( ! geometryShaderCode.empty() ) {
+  //   geometryShaderId = glCreateShader( GL_GEOMETRY_SHADER );
+  //   LoadShader( geometryShaderId, geometryShaderCode );
+  // }
+
   vertexShaderId = glCreateShader( GL_VERTEX_SHADER );
   LoadShader( vertexShaderId, vertexShaderCode );
 
@@ -44,6 +49,8 @@ Shader::LinkShader()
       glGetProgramInfoLog( programId, infoLen, NULL, infoLog );
       LOGW("Error linking program %s: %s\n", Name(), infoLog);
       delete[] infoLog;
+    } else {
+      LOGW("Error linking program %s\n", Name() );
     }
     glDeleteProgram(programId);
   }
