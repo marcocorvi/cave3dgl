@@ -22,6 +22,12 @@ class Menu : public Renderable
       SetShader( & shader );
     }
 
+    void SetMenuString( bool stations, bool splays, bool points, bool surface )
+    {
+      menu.SetTheString( stations, splays, points, surface );
+      // shader.SetTexture( & menu );
+    }
+
 };
 
 #endif

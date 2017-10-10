@@ -13,12 +13,9 @@
 #include <math.h>
 #include <GLES/gl.h>
 
-#define SIGN_X( x ) -((x))
-#define SIGN_Y( y ) -((y))
-#define SIGN_Z( z ) -((z))
+#include "Functions.h"
 
-
-SplayPoints::SplayPoints( TherionModel * model, Shader * shader )
+SplayPoints::SplayPoints( Model * model, Shader * shader )
   : Geometry( GL_POINTS, "SplayPoints", FLAG_POINTS )
   , vertex( NULL ) // can use pointer in vertex array of the model
   , index( NULL )  // but point indices must be reset (to skip FROM index)
@@ -29,30 +26,56 @@ SplayPoints::SplayPoints( TherionModel * model, Shader * shader )
   , scale( model->scale )
 { 
   nVertex = therion_nx;
-  nIndex  = therion_nx;
+  nSIndex = therion_nx;
   CopyBBox( model );
   CopySpec( model );
-  vertex = (float *)(model->Vertex()) + 3 * model->therion_ns; 
-  index = new unsigned short[ nIndex ];
-
-  unsigned short * mindex = (unsigned short *)(model->Index()) + (2 * model->therion_nl + 1);
-  unsigned short off = (unsigned short)( model->therion_ns );
-  for ( int k=0; k<nIndex; ++k ) index[k] = mindex[2*k] - off;
+  vertex = (float *)(model->Vertex());
+  index = (unsigned short *)(model->SIndex());
 
   SetVertex( vertex );
-  SetIndex( index );
+  SetSIndex( index );
   SetNVertex( nVertex ); // number of vertexes
-  SetNIndex( nIndex );   // number of indices used to render
+  SetNSIndex( nSIndex ); // number of indices used to render
+  
   SetName( "splay_points" );
   SetNPos( 3 );
   SetVertexStride( sizeof(float) * 3 );
 
   SetGeometry( this );
   SetShader( shader );
+
+  // int ns = model->NSIndex();
+  // for ( int k=0; k<ns; ++ k ) {
+  //   int ik = index[k];
+  //   LOGI("V[%d]: %.6f %.6f %.6f", ik, vertex[3*ik+0], vertex[3*ik+1], vertex[3*ik+2] );
+  // }
+}
+
+void 
+SplayPoints::UpdateDataBuffers( Model * model )
+{
+  int nv = model->therion_ns + model->therion_nx; // number of vertexes
+  int ni = model->therion_nx;                     // number of indexes
+
+  vertex = (float *)(model->Vertex()); // + 3 * model->therion_ns; 
+  LOGI("SplayPoints update data buffer (nx %d -> %d) nIndex %d st %d leg %d scale %.2f",
+    therion_nx, model->therion_nx, nSIndex, model->therion_ns, model->therion_nl, model->scale );
+
+  index = (unsigned short *)(model->SIndex());
+  nVertex = model->NVertex();
+  nSIndex = model->NSIndex();
+  therion_nx = nSIndex;
+
+  SetVertex(  vertex );
+  SetNVertex( nVertex );
+  SetSIndex(  index );
+  SetNSIndex( nSIndex );
+
+  CopyBBox( model ); 
+  // LOGI("update done");
 }
 
 SplayPoints::~SplayPoints() 
 {
-  if ( index != NULL ) delete[] index;
 }
 

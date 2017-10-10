@@ -1,6 +1,13 @@
 #ifndef FUNCTIONS_H_
 #define FUNCTIONS_H_
 
+#define SIGN_X( x ) -((x))
+#define SIGN_Y( y ) -((y))
+#define SIGN_Z( z ) -((z))
+
+#define Z_OFFSET    100.0f
+#define Z_OFFSET2  1000.0f
+
 namespace Framework
 {
 	template<class T>

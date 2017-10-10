@@ -6,9 +6,9 @@
 #include "Geometry.h"
 #include "CharMap.h"
 
-#define INDEX_STATIONS  1
-#define INDEX_SPLAYS   15
-#define INDEX_SURFACE  27
+#define IDX_STATIONS  1
+#define IDX_SPLAYS   15
+#define IDX_SURFACE  27
 
 #define BLANK ' '
 #define STAR  '+'
@@ -34,25 +34,25 @@ class MenuTexture : public Texture
       if ( texData ) delete[] texData;
     }
 
-    void ToggleStations() { ToggleIndex( INDEX_STATIONS ); }
-    void ToggleSplays()   { ToggleIndex( INDEX_SPLAYS ); }
-    void ToggleSurface()  { ToggleIndex( INDEX_SURFACE ); }
-    void ToggleIndex( int j ) 
-    {
-      // LOGI("Menu Texture toggle %d ", j);
-      menu_str[j] = ( menu_str[j] == STAR )? BLANK : STAR;
-      UpdateString( j );
-    }
+    // void ToggleStations() { ToggleIndex( IDX_STATIONS ); }
+    // void ToggleSplays()   { ToggleIndex( IDX_SPLAYS ); }
+    // void ToggleSurface()  { ToggleIndex( IDX_SURFACE ); }
+    // void ToggleIndex( int j ) 
+    // {
+    //   menu_str[j] = ( menu_str[j] == STAR )? BLANK : STAR;
+    //   UpdateString( j );
+    // }
 
-    bool HasStations() const { return HasIndex( INDEX_STATIONS ); }
-    bool HasSplays()   const { return HasIndex( INDEX_SPLAYS ); }
-    bool HasSurface()  const { return HasIndex( INDEX_SURFACE ); }
-    bool HasIndex( int j ) const { return ( menu_str[j] == STAR ); }
+    // bool HasStations() const { return HasIndex( IDX_STATIONS ); }
+    // bool HasSplays()   const { return HasIndex( IDX_SPLAYS ); }
+    // bool HasSurface()  const { return HasIndex( IDX_SURFACE ); }
+    // bool HasIndex( int j ) const { return ( menu_str[j] == STAR ); }
 
     Geometry * GetGeometry() { return & geometry; }
 
+    void SetTheString( bool stations, bool splays, bool points, bool surface );
     void SetString();
-    void UpdateString( int j );
+    // void UpdateString( int j );
 };
 
 #endif

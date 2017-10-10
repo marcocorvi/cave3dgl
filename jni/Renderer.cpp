@@ -14,7 +14,7 @@
 #include "Android.h"
 
 void
-Renderer::InitRenderer( android_app * s )
+Renderer::InitRenderer( android_app * s, float near, float far )
 {
   // LOGI("Renderer::init() initialized %d", initialized );
   // paused = false;
@@ -75,7 +75,7 @@ Renderer::InitRenderer( android_app * s )
 
   LinkShaders();
 
-  BuildFrustum( 60.0f, aspect, 1.0f, 1000.0f );
+  BuildFrustum( 60.0f, aspect, near, far );
   initialized = true;
 }
 
@@ -155,8 +155,8 @@ Renderer::Draw( Renderable * r )
   if ( s == NULL ) {
     LOGW("Renderer::Draw renderable NULL shader" );
     return;
-  }
-  if ( g->TestFlag(flag)  ) return;
+ }
+  if ( g->TestFlag(mFlag)  ) return;
 
   s->SetupShader( *r );
 
@@ -164,10 +164,10 @@ Renderer::Draw( Renderable * r )
     case FLAG_STATIONS:
     case FLAG_STATUS:
     case FLAG_MENU:
-      glDrawElements( g->GetType(), g->NIndex(), GL_UNSIGNED_SHORT, g->Index() );
+      glDrawElements( g->GetType(), g->NSIndex(), GL_UNSIGNED_SHORT, g->SIndex() );
       break;
     case FLAG_POINTS:
-      glDrawElements( g->GetType(), g->NIndex(), GL_UNSIGNED_SHORT, g->Index() );
+      glDrawElements( g->GetType(), g->NSIndex(), GL_UNSIGNED_SHORT, g->SIndex() );
       // glDrawArrays( g->GetType(), 0, g->NIndex() );
       // {
       //   int nv = 3*g->NVertex();
@@ -179,17 +179,15 @@ Renderer::Draw( Renderable * r )
       // }
       break;
     case FLAG_SURFACE:
-      glDrawElements( g->GetType(), g->NIndex(), GL_UNSIGNED_SHORT, g->Index() );
+      glDrawElements( g->GetType(), g->NSIndex(), GL_UNSIGNED_SHORT, g->SIndex() );
       break;
     case FLAG_LINE:
     case FLAG_NONE:
-      int off = 2 * g->NLegs(); 
       glLineWidth( 4.0f );
-      glDrawElements( g->GetType(), off, GL_UNSIGNED_SHORT, g->Index() );
-      if ( (flag & FLAG_SPLAYS) != FLAG_SPLAYS ) {
+      glDrawElements( g->GetType(), g->NLIndex(), GL_UNSIGNED_SHORT, g->LIndex() );
+      if ( (mFlag & FLAG_SPLAYS) != FLAG_SPLAYS ) {
         glLineWidth( 2.0f );
-        void * splay = (void*)(((unsigned short *)g->Index())+off); // indexes of splays
-        glDrawElements( g->GetType(), g->NIndex() - off, GL_UNSIGNED_SHORT, splay );
+        glDrawElements( g->GetType(), g->NSIndex(), GL_UNSIGNED_SHORT, g->SIndex() );
       }
       break;
   }

@@ -14,6 +14,10 @@ MenuTexture::vertex[4*5] = {
 unsigned short 
 MenuTexture::index[6] = { 0, 2, 1, 1, 2, 3 };
 
+#define IDX_STATIONS  1
+#define IDX_SPLAYS   15
+#define IDX_SURFACE  27
+
 MenuTexture::MenuTexture( )
   : geometry( GL_TRIANGLES, "menu", FLAG_MENU )
 { 
@@ -30,9 +34,9 @@ MenuTexture::MenuTexture( )
   // width  = len * WIDTH; each char is 8 byte wide
   // height = HEIGHT;
   geometry.SetNVertex( 4 );
-  geometry.SetNIndex( 6 );
+  geometry.SetNSIndex( 6 );
   geometry.SetVertex( (void *)vertex );
-  geometry.SetIndex( (void *)index );
+  geometry.SetSIndex( (void *)index );
   geometry.SetNPos( 3 );  // nr. vertex position elements
   geometry.SetNCol( 1 );
   geometry.SetNTex( 2 );  // nr. texture coord elements
@@ -72,21 +76,30 @@ MenuTexture::SetString( )
 }
 
 void
-MenuTexture::UpdateString( int j )
+MenuTexture::SetTheString( bool stations, bool splays, bool points, bool surface )
 {
-  CharMap * chars = CharMap::Instance();
-
-  int xoff = j * 10 * bpp;
-  unsigned char * shape = chars->Shape( menu_str[j] );
-  for (unsigned char m = 0x80; m > 0; m>>=1) {
-    unsigned char * off = texData + xoff;
-    for ( int j=0; j<HEIGHT; ++j ) {
-      if ( (m & shape[ j ]) == m ) {
-        memset( off, 0, bpp );
-        off[bpp-1] = 0xff;
-      }
-      off += stride;
-    }
-    xoff += bpp;
-  }
+  menu_str[IDX_STATIONS] = stations ? ' ' : 'x';
+  menu_str[IDX_SPLAYS]   = splays ? (points? ' ' : '.') : (points? 'x' : '+');
+  menu_str[IDX_SURFACE]  = surface ? ' ' : 'x';
+  SetString();
 }
+
+// void
+// MenuTexture::UpdateString( int j )
+// {
+//   CharMap * chars = CharMap::Instance();
+// 
+//   int xoff = j * 10 * bpp;
+//   unsigned char * shape = chars->Shape( menu_str[j] );
+//   for (unsigned char m = 0x80; m > 0; m>>=1) {
+//     unsigned char * off = texData + xoff;
+//     for ( int j=0; j<HEIGHT; ++j ) {
+//       if ( (m & shape[ j ]) == m ) {
+//         memset( off, 0, bpp );
+//         off[bpp-1] = 0xff;
+//       }
+//       off += stride;
+//     }
+//     xoff += bpp;
+//   }
+// }

@@ -6,15 +6,15 @@
 #include "Geometry.h"
 #include "Renderable.h"
 #include "Shader.h"
-#include "TherionModel.h"
+#include "Model.h"
 
 class SplayPoints : public Renderable
                   , public Geometry
 {
   private:
     float * vertex; // splay points positions [not owned]
-    unsigned short * index; // splay indices [not owned]
-    int therion_nx; // nr. of splays
+    unsigned short * index; // splay indices [owned]
+    int therion_nx;
 
     float x_offset; // file-model offset
     float y_offset;
@@ -22,12 +22,13 @@ class SplayPoints : public Renderable
     float scale;    // model scale
 
   public:
-    SplayPoints( TherionModel * model, Shader * shader );
+    SplayPoints( Model * model, Shader * shader );
 
     ~SplayPoints();
 
     int GetNPoints() { return therion_nx; }
 
+    void UpdateDataBuffers( Model * model );
 }; 
 
 #endif

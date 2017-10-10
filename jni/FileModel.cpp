@@ -1,6 +1,9 @@
-#include "TherionModel.h"
+#include "FileModel.h"
 
 #include <assert.h>
+
+#include "Functions.h"
+#include "Log.h"
 
 #include "TherionFile.h"
 // #include "TherionSurface.h"
@@ -9,7 +12,6 @@
 // #include "LoxSurface.h"
 // #include "LoxBitmap.h"
 
-#include "Log.h"
 /*
  * nr_stations nr_legs nr_splays
  * station_0 x0 y0 z0
@@ -33,55 +35,29 @@
 #include <math.h>
 #include <GLES/gl.h>
 
-#define SIGN_X( x ) -((x))
-#define SIGN_Y( y ) -((y))
-#define SIGN_Z( z ) -((z))
-
-
-TherionModel::~TherionModel()
+FileModel::~FileModel()
 {
-  // LOGI("TherionModel::dstr()" );
-  if ( vertex ) delete[] vertex;
-  if ( index ) delete[] index;
-  if ( station_name ) {
-    for ( int k = 0; k < therion_ns; ++k ) if ( station_name[k] ) delete[] station_name[k];
-    delete[] station_name;
-  }
+  // LOGI("File Model::dstr()" );
   if ( dem ) delete[] dem;
 }
 
-const char ** 
-TherionModel::GetStations()
-{
-  return (const char **) station_name;
-}
 
-int 
-TherionModel::GetNStations()
-{
-  return therion_ns;
-}
-
-TherionModel::TherionModel( )
-  : Geometry( GL_LINES, "TherionModel", FLAG_LINE )
-  , station_name( NULL )
-  , vertex( NULL )
+FileModel::FileModel( )
+  : Model( "FileModel" )
   , dem( NULL )
   , dem_cols( 0 )
   , dem_rows( 0 )
-  , index( NULL )
-  , therion_ns( 0 )
-  , therion_nl( 0 )
-  , therion_nx( 0 )
-  , x_offset( 0.0f )
-  , y_offset( 0.0f )
-  , z_offset( 0.0f )
-  , scale( 1.0f )
-{ }
+{
+}
 
 void
-TherionModel::Init( const char * filename )
+FileModel::Init( const char * filename )
 {
+  if ( filename == NULL ) {
+    LOGW("ERROR null init file" );
+    return;
+  }
+
   size_t len = strlen( filename );
   if ( len > 3 && strcmp( filename + len - 3, "lox" ) == 0 ) {
     InitFromLox( filename );
@@ -91,18 +67,20 @@ TherionModel::Init( const char * filename )
     InitFromTh( filename );
   } else if ( len >= 8 && strncmp( filename, "thconfig", 8 ) == 0 ) {
     InitFromTh( filename );
+  } else {
+    LOGW("ERROR unsupported init file %s", filename );
   }
 }
 
 void
-TherionModel::InitFromTh( const char * filename )
+FileModel::InitFromTh( const char * filename )
 {
-  // LOGI("TherionModel::Init() %s", filename );
+  // LOGI("File Model::Init() %s", filename );
   TherionFile thf( filename );
   therion_ns = thf.GetStationNumber();
   therion_nl = thf.GetShotNumber();
   therion_nx = thf.GetSplayNumber();
-  // LOGI("TherionModel::Init() N_stations %d N_splay %d N_legs %d", therion_ns, therion_nx, therion_nl );
+  // LOGI("File Model::Init() N_stations %d N_splay %d N_legs %d", therion_ns, therion_nx, therion_nl );
   
   x_offset = (thf.Zmin() + thf.Zmax())/2;
   y_offset = (thf.Emin() + thf.Emax())/2;
@@ -117,9 +95,9 @@ TherionModel::InitFromTh( const char * filename )
 
   station_name = new char * [therion_ns];
   vertex = new float[ 3 * (therion_ns + therion_nx) ];
-  index  = new unsigned short[ 2 * (therion_nl + therion_nx) ];
+  lindex  = new unsigned short[ 2 * therion_nl ];
+  sindex  = new unsigned short[ 2 * therion_nx ];
   float * svertex = vertex + (3 * therion_ns);        // N.B. offset by NR STATIONS
-  unsigned short * sindex = index + (2 * therion_nl); //      offset by NR LEGS
 
   std::vector< TherionStation * > & thst = thf.GetStations();
   std::vector< TherionShot * > & ths = thf.GetShots();
@@ -143,15 +121,15 @@ TherionModel::InitFromTh( const char * filename )
   for ( int k=0; k<therion_ns; ++k ) {
     vertex[3*k+0] = SIGN_X( (thst[k]->Z() - x_offset) * scale );
     vertex[3*k+1] = SIGN_Y( (thst[k]->E() - y_offset) * scale );
-    vertex[3*k+2] = SIGN_Z( (thst[k]->N() - z_offset) * scale ) + 100.0f;
-    // LOGI("STATION %s %.2f %.2f %.2f", station_name[k], vertex[3*k+0], vertex[3*k+1], vertex[3*k+2] );
+    vertex[3*k+2] = SIGN_Z( (thst[k]->N() - z_offset) * scale ); // XXX + Z_OFFSET;
+    LOGI("STATION %s %.2f %.2f %.2f", station_name[k], vertex[3*k+0], vertex[3*k+1], vertex[3*k+2] );
   }
   for ( int k=0; k<therion_nx; ++k ) {
     // FIXME this assumes that splays have FROM station
     TherionStation * st = thx[k]->GetStationFromStation( thx[k]->FromStation() );
     svertex[3*k+0] = SIGN_X( ( st->Z() - x_offset ) * scale );
     svertex[3*k+1] = SIGN_Y( ( st->E() - y_offset ) * scale );
-    svertex[3*k+2] = SIGN_Z( ( st->N() - z_offset ) * scale ) + 100.0f;
+    svertex[3*k+2] = SIGN_Z( ( st->N() - z_offset ) * scale ); // XXX + Z_OFFSET;
     delete st;
   }
   for ( int k=0; k<therion_nl; ++k ) {
@@ -167,8 +145,8 @@ TherionModel::InitFromTh( const char * filename )
       LOGW("ERROR To station not found %s", ths[k]->From().c_str() );
       continue;
     }
-    index[2*k+0] = (unsigned short)kf;
-    index[2*k+1] = (unsigned short)kt;
+    lindex[2*k+0] = (unsigned short)kf;
+    lindex[2*k+1] = (unsigned short)kt;
   }
   for ( int k=0; k<therion_nx; ++k ) {
     int kf = 0;
@@ -189,12 +167,13 @@ TherionModel::InitFromTh( const char * filename )
   SetNVertex( therion_ns + therion_nx );
   SetNStations( therion_ns );
   SetNLegs( therion_nl );
-  SetIndex( index );
-  SetNIndex( 2 * (therion_nl+therion_nx) );  // number of indices to use to render
+  SetLIndex( lindex );
+  SetSIndex( sindex );
+  SetNLIndex( 2 * therion_nl );  // number of indices to use to render
+  SetNSIndex( 2 * therion_nx );  // number of indices to use to render
   SetName("therion-model");
 
   SetNPos(3);
-  
   SetVertexStride( sizeof(float) * 3 );
 
   TherionSurface * s = thf.GetSurface();
@@ -233,8 +212,8 @@ TherionModel::InitFromTh( const char * filename )
 
           dem[ off + 0  ] = SIGN_X( (zval - x_offset) * scale );
           dem[ off + 1  ] = SIGN_Y( (e1 + e * de - y_offset) * scale );
-          // FIXME why not to add 100.0f ????
-          dem[ off + 2  ] = SIGN_Z( (n1 + n * dn - z_offset) * scale ); //  + 100.0f;
+          // FIXME why not to add Z_OFFSET ? because Z_OFFSET is  subtracted from vertexes in InitBBox
+          dem[ off + 2  ] = SIGN_Z( (n1 + n * dn - z_offset) * scale ); //  + Z_OFFSET;
           dem[ off + 3  ] = normal_x / n2;
           dem[ off + 4  ] = normal_y / n2;
           dem[ off + 5  ] = 1.0f / n2;
@@ -245,8 +224,8 @@ TherionModel::InitFromTh( const char * filename )
         #else 
           dem[ off + 0  ] = SIGN_X( (z[ zoff ] - x_offset) * scale );
           dem[ off + 1  ] = SIGN_Y( (e1 + e * de - y_offset) * scale );
-          // FIXME why not to add 100.0f ????
-          dem[ off + 2  ] = SIGN_Z( (n1 + n * dn - z_offset) * scale ); //  + 100.0f;
+          // FIXME why not to add Z_OFFSET ? because Z_OFFSET is  subtracted from vertexes in InitBBox
+          dem[ off + 2  ] = SIGN_Z( (n1 + n * dn - z_offset) * scale ); //  + Z_OFFSET;
           if ( bitmap != NULL ) bitmap->GetRGB( e1 + e*de, n1 + n*dn, r, g, b );
           dem[ off + 3  ] = r;
           dem[ off + 4  ] = g;
@@ -258,12 +237,13 @@ TherionModel::InitFromTh( const char * filename )
     // LOGI("DEM %d x %d", dem_cols, dem_rows );
   }
 
-  InitBBox();
+  LOGI("scale %.6f", scale );
+  InitBBox( true );
 }
 
 
 void
-TherionModel::InitFromLox( const char * filename )
+FileModel::InitFromLox( const char * filename )
 {
   LoxFile lox;
   lox.ReadFile( filename );
@@ -326,7 +306,7 @@ TherionModel::InitFromLox( const char * filename )
     stations.insert( std::pair<std::string, int>( st_name, k ) );
     vertex[3*k+0] = SIGN_X( (st->z - x_offset) * scale );
     vertex[3*k+1] = SIGN_Y( (st->x - y_offset) * scale );
-    vertex[3*k+2] = SIGN_Z( (st->y - z_offset) * scale ) + 100.0f;
+    vertex[3*k+2] = SIGN_Z( (st->y - z_offset) * scale ); // XXX + Z_OFFSET;
     // LOGI("St %d %s: %.2f %.2f %.2f => %.2f %.2f %.2f",
     //   k, st_name, st->x, st->y, st->z, vertex[3*k+0], vertex[3*k+1], vertex[3*k+2] );
     idst[ k ] = (int)(st->Id());
@@ -341,7 +321,7 @@ TherionModel::InitFromLox( const char * filename )
     // stations.insert( std::pair<std::string, int>( st->Name(), k ) );
     vertex[3*k+0] = SIGN_X( (st->z - x_offset) * scale );
     vertex[3*k+1] = SIGN_Y( (st->x - y_offset) * scale );
-    vertex[3*k+2] = SIGN_Z( (st->y - z_offset) * scale ) + 100.0f;
+    vertex[3*k+2] = SIGN_Z( (st->y - z_offset) * scale ); // XXX + Z_OFFSET;
     idst[ k ] = (int)(st->Id());
     ++ k;
   }
@@ -361,7 +341,7 @@ TherionModel::InitFromLox( const char * filename )
 
   therion_nl = 0;
   std::vector< LoxShot * > & shs = lox.GetShots();
-  index  = new unsigned short[ 2 * nlx ];
+  lindex  = new unsigned short[ 2 * nlx ];
   k = 0;
   for ( std::vector< LoxShot * >::iterator it = shs.begin(); it != shs.end(); ++it ) {
     LoxShot * sh = *it;
@@ -383,14 +363,15 @@ TherionModel::InitFromLox( const char * filename )
       continue;
     }
     if ( kfr < therion_ns && kto < therion_ns ) {
-      index[2*k+0] = (unsigned short)kfr;
-      index[2*k+1] = (unsigned short)kto;
-      // LOGI("Leg %d: %d-%d", therion_nl, index[2*k+0], index[2*k+1] );
+      lindex[2*k+0] = (unsigned short)kfr;
+      lindex[2*k+1] = (unsigned short)kto;
+      // LOGI("Leg %d: %d-%d", therion_nl, lindex[2*k+0], lindex[2*k+1] );
       ++ therion_nl;
       ++ k;
     }
   }
   
+  sindex  = new unsigned short[ 2 * nlx ];
   int nx = 0;
   for ( std::vector< LoxShot * >::iterator it = shs.begin(); it != shs.end(); ++it ) {
     LoxShot * sh = *it;
@@ -412,12 +393,13 @@ TherionModel::InitFromLox( const char * filename )
       continue;
     }
     if ( kfr >= therion_ns || kto >= therion_ns ) {
-      index[2*k+0] = (unsigned short)kfr;
-      index[2*k+1] = (unsigned short)kto;
+      sindex[2*k+0] = (unsigned short)kfr;
+      sindex[2*k+1] = (unsigned short)kto;
       ++ nx;
       ++ k;
     }
   }
+  therion_nx = nx;
   // assert( nx == therion_nx );
   // assert( k == nlx );
   // assert( nlx == therion_nl + therion_nx );
@@ -430,12 +412,13 @@ TherionModel::InitFromLox( const char * filename )
   SetNVertex( therion_ns + therion_nx );
   SetNStations( therion_ns );
   SetNLegs( therion_nl );
-  SetIndex( index );
-  SetNIndex( 2 * (therion_nl+therion_nx) );  // number of indices to use to render
+  SetLIndex( lindex );
+  SetNLIndex( 2 * therion_nl );  // number of indices to use to render
+  SetSIndex( sindex );
+  SetNSIndex( 2 * therion_nx );  // number of indices to use to render
   SetName("therion-model");
 
   SetNPos(3);
-  
   SetVertexStride( sizeof(float) * 3 );
 
   LoxSurface * s = lox.GetSurface();
@@ -480,10 +463,10 @@ TherionModel::InitFromLox( const char * filename )
 
           dem[ off + 0  ] = SIGN_X( (zval - x_offset) * scale );
           dem[ off + 1  ] = SIGN_Y( (e1 + e * de - y_offset) * scale ); 
-          dem[ off + 2  ] = SIGN_Z( (n1 + n * dn - z_offset) * scale ); // + 100.0f;
+          dem[ off + 2  ] = SIGN_Z( (n1 + n * dn - z_offset) * scale ); // + Z_OFFSET;
           // LOGI("DEM %.2f %.2f %.2f => %.2f %.2f %.2f", e1 + e * de, n1 + n * dn, zval,
           //   dem[ off + 0  ], dem[ off + 1  ], dem[ off + 2  ] );
-          // FIXME why not to add 100.0f ????
+          // FIXME why not to add Z_OFFSET ? because Z_OFFSET is subtracted by InitBBox 
 
           dem[ off + 3  ] = normal_x / n2;
           dem[ off + 4  ] = normal_y / n2;
@@ -496,8 +479,8 @@ TherionModel::InitFromLox( const char * filename )
         #else 
           dem[ off + 0  ] = SIGN_X( (float)(z0[ zoff ] - x_offset) * scale );
           dem[ off + 1  ] = SIGN_Y( (e1 + e * de - y_offset) * scale );
-          dem[ off + 2  ] = SIGN_Z( (n1 + n * dn - z_offset) * scale ); // + 100.0f;
-          // FIXME why not to add 100.0f ????
+          dem[ off + 2  ] = SIGN_Z( (n1 + n * dn - z_offset) * scale ); // + Z_OFFSET;
+          // FIXME why not to add Z_OFFSET ? because it is subtracted from vertices by InitBBox
 
           if ( bitmap != NULL ) bitmap->GetRGB( e1 + e*de, n1 + n*dn, r, g, b );
           dem[ off + 3  ] = r;
@@ -512,7 +495,7 @@ TherionModel::InitFromLox( const char * filename )
     // LOGI("DEM %d x %d", dem_cols, dem_rows );
   }
 
-  InitBBox();
+  InitBBox( true );
 }
 
 

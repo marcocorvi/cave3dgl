@@ -29,9 +29,9 @@ StatusTexture::StatusTexture( unsigned int len )
   // width  = len * WIDTH; each char is 8 byte wide
   // height = HEIGHT;
   geometry.SetNVertex( 4 );
-  geometry.SetNIndex( 6 );
+  geometry.SetNSIndex( 6 );
   geometry.SetVertex( (void *)vertex );
-  geometry.SetIndex( (void *)index );
+  geometry.SetSIndex( (void *)index );
   geometry.SetNPos( 3 );  // nr. vertex position elements
   geometry.SetNCol( 1 );
   geometry.SetNTex( 2 );  // nr. texture coord elements

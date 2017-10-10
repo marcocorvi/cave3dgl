@@ -51,14 +51,18 @@ import android.util.Log;
 
 public class DistoXComm 
 {
+  static final String TAG = "Cave3Dgl";
+
   private Context mContext;
 
   private BluetoothDevice  mBTDevice;
   private BluetoothSocket  mBTSocket;
   private BluetoothAdapter mBTAdapter;
 
-  private String mAddress = "00>13:43:08:3B:3E";
+  static final String mDefaultAddress = "00:13:43:08:3B:3E";
+  private String mAddress = null;
   private DistoXProtocol mProtocol;
+  // private DataQueue      mQueue;
   private boolean mBTConnected;
   private boolean mConnected;
   public byte[] mCoeff;
@@ -72,12 +76,43 @@ public class DistoXComm
 
   DistoXComm( Context context )
   {
-    mContext   = context;
+    mContext   = (Context)context;
     mAddress   = null;
     mBTSocket  = null;
     mBTAdapter = BluetoothAdapter.getDefaultAdapter();
-    // Log.v( "CaveGL", "DistoX Comm cstr");
+    // Log.v( TAG, "DistoXComm cstr");
+    // mQueue     = new DataQueue();
   }
+
+  // -------------------------------------------------------- 
+  // DEVICE
+
+  public boolean disconnect( )
+  {
+    Log.v( TAG, "DistoXComm disconnect");
+    cancelRfcommThread();
+    closeProtocol();
+    destroySocket( );
+    return true;
+  }
+
+  public boolean connect( String address )
+  {
+    // Log.v( TAG, "DistoXComm connect addr <" + address + ">" );
+    if ( mRfcommThread != null ) {
+      return true;
+    }
+    if ( ! connectSocket( address ) ) {
+      return false;
+    }
+    startRfcommThread( );
+    return true;
+  }
+
+
+  public native void addPoint( double e, double n, double z );
+
+  // public Data getData( ) { return mQueue.get(); }
 
   // public void resume()
   // {
@@ -91,11 +126,11 @@ public class DistoXComm
   private void resetBTReceiver()
   {
     if ( mBTReceiver == null ) return;
-    // Log.v( "CaveGL", "reset BT receiver");
+    // Log.v( TAG, "reset BT receiver");
     try {
       mContext.unregisterReceiver( mBTReceiver );
     } catch ( IllegalArgumentException e ) {
-      Log.v( "CaveGL", "Error: unregister BT receiver error " + e.getMessage() );
+      Log.v( TAG, "Error: unregister BT receiver error " + e.getMessage() );
     }
     mBTReceiver = null;
   }
@@ -107,7 +142,7 @@ public class DistoXComm
   private void setupBTReceiver()
   {
     resetBTReceiver();
-    // Log.v( "CaveGL", "setup BT receiver");
+    // Log.v( TAG, "setup BT receiver");
     mBTReceiver = new BroadcastReceiver() 
     {
       @Override
@@ -121,20 +156,20 @@ public class DistoXComm
         // } else if ( BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals( action ) ) {
         // } else if ( BluetoothDevice.ACTION_FOUND.equals( action ) ) {
         if ( BluetoothDevice.ACTION_ACL_CONNECTED.equals( action ) ) {
-          Log.v( "CaveGL", "[C] ACL_CONNECTED " + device_address + " addr " + mAddress );
+          Log.v( TAG, "[C] ACL_CONNECTED " + device_address + " addr <" + mAddress + ">" );
           if ( device_address.equals(mAddress) ) // FIXME ACL_DISCONNECT
           {
             mConnected = true;
           }
         } else if ( BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED.equals( action ) ) {
-          Log.v( "CaveGL", "[C] ACL_DISCONNECT_REQUESTED " + device_address + " addr " + mAddress );
+          Log.v( TAG, "[C] ACL_DISCONNECT_REQUESTED " + device_address + " addr <" + mAddress + ">" );
           if ( device_address.equals(mAddress) ) // FIXME ACL_DISCONNECT
           {
             mConnected = false;
             closeSocket( );
           }
         } else if ( BluetoothDevice.ACTION_ACL_DISCONNECTED.equals( action ) ) {
-          Log.v( "CaveGL", "[C] ACL_DISCONNECTED " + device_address + " addr " + mAddress );
+          Log.v( TAG, "[C] ACL_DISCONNECTED " + device_address + " addr <" + mAddress + ">" );
           if ( device_address.equals(mAddress) ) // FIXME ACL_DISCONNECT
           {
             mConnected = false;
@@ -144,19 +179,19 @@ public class DistoXComm
           final int state     = data.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.ERROR);
           final int prevState = data.getIntExtra(BluetoothDevice.EXTRA_PREVIOUS_BOND_STATE, BluetoothDevice.ERROR);
           if (state == BluetoothDevice.BOND_BONDED && prevState == BluetoothDevice.BOND_BONDING) {
-            Log.v( "CaveGL", "BOND STATE CHANGED paired (BONDING --> BONDED) " );
+            Log.v( TAG, "BOND STATE CHANGED paired (BONDING --> BONDED) " );
           } else if (state == BluetoothDevice.BOND_NONE && prevState == BluetoothDevice.BOND_BONDED){
-            Log.v( "CaveGL", "BOND STATE CHANGED unpaired (BONDED --> NONE) " );
+            Log.v( TAG, "BOND STATE CHANGED unpaired (BONDED --> NONE) " );
           } else if (state == BluetoothDevice.BOND_BONDING && prevState == BluetoothDevice.BOND_BONDED) {
-            Log.v( "CaveGL", "BOND STATE CHANGED unpaired (BONDED --> BONDING) " );
+            Log.v( TAG, "BOND STATE CHANGED unpaired (BONDED --> BONDING) " );
             if ( mBTSocket != null ) {
-              Log.v( "CaveGL", "[*] socket is not null: close and retry connect ");
+              Log.v( TAG, "[*] socket is not null: close and retry connect ");
               mConnected = false;
               closeSocket( );
               connectSocket( mAddress ); // returns immediately if mAddress == null
             }
           } else {
-            Log.v( "CaveGL", "BOND STATE CHANGED " + prevState + " --> " + state  );
+            Log.v( TAG, "BOND STATE CHANGED " + prevState + " --> " + state  );
           }
 
           // DeviceUtil.bind2Device( data );
@@ -201,16 +236,16 @@ public class DistoXComm
   {
     if ( mBTSocket == null ) return;
 
-    // Log.v( "CaveGL", "close socket() address " + mAddress );
+    // Log.v( TAG, "close socket() addr <" + mAddress + ">" );
     for ( int k=0; k<1 && mBTSocket != null; ++k ) {
-      // Log.v( "CaveGL", "try close socket nr " + k );
+      // Log.v( TAG, "try close socket nr " + k );
       cancelRfcommThread();
       closeProtocol();
       try {
         mBTSocket.close();
         mBTSocket = null;
       } catch ( IOException e ) {
-        Log.v( "CaveGL", "close socket IOexception " + e.getMessage() );
+        Log.v( TAG, "close socket IOexception " + e.getMessage() );
         // LogStackTrace( e );
       } finally {
         mBTConnected = false;
@@ -226,7 +261,7 @@ public class DistoXComm
   private void destroySocket( ) // boolean wait_thread )
   {
     if ( mBTSocket == null ) return;
-    // Log.v( "CaveGL", "destroy socket() address " + mAddress );
+    // Log.v( TAG, "destroy socket() addr <" + mAddress + ">" );
     // closeProtocol(); // already in closeSocket()
     closeSocket();
     // mBTSocket = null;
@@ -239,23 +274,27 @@ public class DistoXComm
    */
   private void createSocket( String address, int port )
   {
-    if ( address == null ) return;
-    // Log.v( "CaveGL", "create Socket() addr " + address + " mAddress " + mAddress);
+    if ( address == null || address.length() == 0 ) {
+      address = mDefaultAddress;
+      // Log.v( TAG, "create Socket() using default address" );
+    }
+    // Log.v( TAG, "create Socket() param-addr <" + address + "> addr <" + mAddress + ">" );
     if ( mProtocol == null || ! address.equals( mAddress ) ) {
       if ( mProtocol != null && ! address.equals( mAddress ) ) {
-        disconnectRemoteDevice();
+        disconnect();
       }
 
       if ( mBTSocket != null ) {
-        // Log.v( "CaveGL", "create Socket() BTSocket not null ... closing");
+        // Log.v( TAG, "create Socket() BTSocket not null ... closing");
         try {
           mBTSocket.close();
         } catch ( IOException e ) { 
-          Log.v( "CaveGL", "close Socket IO " + e.getMessage() );
+          Log.v( TAG, "close Socket IO " + e.getMessage() );
         }
         mBTSocket = null;
       }
 
+      // Log.v( TAG, "get remote BT device for address <" + address + ">" );
       mBTDevice = mBTAdapter.getRemoteDevice( address );
       // assume the device is PAIRED
       {
@@ -263,38 +302,38 @@ public class DistoXComm
           Class[] classes1 = new Class[]{ int.class };
           Class[] classes2 = new Class[]{ UUID.class };
           // if ( TDSetting.mSockType == TDSetting.TD_SOCK_DEFAULT ) {
-          //   // Log.v( "CaveGL", "create Socket() createRfcommSocketToServiceRecord " );
+          //   // Log.v( TAG, "create Socket() createRfcommSocketToServiceRecord " );
           //   mBTSocket = mBTDevice.createRfcommSocketToServiceRecord( UUID.fromString("00001101-0000-1000-8000-00805F9B34FB") );
           // } else if ( TDSetting.mSockType == TDSetting.TD_SOCK_INSEC ) {
-            // Log.v( "CaveGL", "create Socket() createInsecureRfcommSocketToServiceRecord " );
+            // Log.v( TAG, "create Socket() createInsecureRfcommSocketToServiceRecord " );
             Method m3 = mBTDevice.getClass().getMethod( "createInsecureRfcommSocketToServiceRecord", classes2 );
             mBTSocket = (BluetoothSocket) m3.invoke( mBTDevice, UUID.fromString("00001101-0000-1000-8000-00805F9B34FB") );
           // } else if ( TDSetting.mSockType == TDSetting.TD_SOCK_INSEC_PORT ) {
-          //   // Log.v( "CaveGL", "create Socket() invoke createInsecureRfcommSocket " );
+          //   // Log.v( TAG, "create Socket() invoke createInsecureRfcommSocket " );
           //   Method m1 = mBTDevice.getClass().getMethod( "createInsecureRfcommSocket", classes1 );
           //   mBTSocket = (BluetoothSocket) m1.invoke( mBTDevice, port );
           //   // mBTSocket = mBTDevice.createInsecureRfcommSocket( port );
           //   // mBTSocket = (BluetoothSocket) m1.invoke( mBTDevice, UUID.fromString("00001101-0000-1000-8000-00805F9B34FB") );
           // } else if ( TDSetting.mSockType == TDSetting.TD_SOCK_PORT ) {
-          //   // Log.v( "CaveGL", "create Socket() invoke createRfcommSocket " );
+          //   // Log.v( TAG, "create Socket() invoke createRfcommSocket " );
           //   Method m2 = mBTDevice.getClass().getMethod( "createRfcommSocket", classes1 );
           //   mBTSocket = (BluetoothSocket) m2.invoke( mBTDevice, port );
           // }
 
         } catch ( InvocationTargetException e ) {
-          Log.v( "CaveGL", "create Socket invoke target " + e.getMessage() );
+          Log.v( TAG, "create Socket invoke target " + e.getMessage() );
           if ( mBTSocket != null ) { mBTSocket = null; }
         // } catch ( UnsupportedEncodingException e ) {
-        //   Log.v( "CaveGL", "create Socket encoding " + e.getMessage() );
+        //   Log.v( TAG, "create Socket encoding " + e.getMessage() );
         //   if ( mBTSocket != null ) { mBTSocket = null; }
         } catch ( NoSuchMethodException e ) {
-          Log.v( "CaveGL", "create Socket no method " + e.getMessage() );
+          Log.v( TAG, "create Socket no method " + e.getMessage() );
           if ( mBTSocket != null ) { mBTSocket = null; }
         } catch ( IllegalAccessException e ) {
-          Log.v( "CaveGL", "create Socket access " + e.getMessage() );
+          Log.v( TAG, "create Socket access " + e.getMessage() );
           if ( mBTSocket != null ) { mBTSocket = null; }
         // } catch ( IOException e ) {
-        //   Log.v( "CaveGL", "create Socket IO " + e.getMessage() );
+        //   Log.v( TAG, "create Socket IO " + e.getMessage() );
         //   if ( mBTSocket != null ) { mBTSocket = null; }
         }
       }
@@ -306,21 +345,21 @@ public class DistoXComm
         try {
           DataInputStream in   = new DataInputStream( mBTSocket.getInputStream() );
           DataOutputStream out = new DataOutputStream( mBTSocket.getOutputStream() );
-          mProtocol = new DistoXProtocol( in, out );
+          mProtocol = new DistoXProtocol( in, out, this );
           mAddress = address;
         } catch ( IOException e ) {
-          Log.v( "CaveGL", "socket stream error " + e.getMessage() );
+          Log.v( TAG, "socket stream error " + e.getMessage() );
           mAddress = null;
           try {
             mBTSocket.close();
           } catch ( IOException ee ) { 
-            Log.v( "CaveGL", "close Socket IO " + ee.getMessage() );
+            Log.v( TAG, "close Socket IO " + ee.getMessage() );
           }
           mBTSocket = null;
         }
       }
       if ( mBTSocket == null ) {
-        Log.v( "CaveGL", "create Socket failure");
+        Log.v( TAG, "create Socket failure");
         if ( mProtocol != null ) mProtocol.closeIOstreams();
         mProtocol = null;
         mAddress = null;
@@ -331,9 +370,12 @@ public class DistoXComm
 
   /** get the list of UUIDs supported by the remote device (for the DistoX only SPP uuid)
    */
-  private void getUuids()
+  private void doGetUuids()
   {
-    if ( mBTDevice == null ) return;
+    if ( mBTDevice == null ) {
+      Log.v( TAG, "null BT device");
+      return;
+    }
     try {
       Class cl = Class.forName("android.bluetooth.BluetoothDevice");
       Class[] pars = {};
@@ -342,11 +384,11 @@ public class DistoXComm
       ParcelUuid[] uuids = (ParcelUuid[]) m0.invoke( mBTDevice, args );
       // if ( uuids != null ) {
       //   for ( ParcelUuid uid : uuids ) {
-      //     Log.v( "CaveGL", "uuid " + uid.toString() );
+      //     Log.v( TAG, "uuid " + uid.toString() );
       //   }
       // }
     } catch ( Exception e ) {
-      Log.v( "CaveGL", "get uuids error " + e.getMessage() );
+      Log.v( TAG, "get uuids error " + e.getMessage() );
     }
   }
 
@@ -355,27 +397,29 @@ public class DistoXComm
   private boolean connectSocket( String address )
   {
     if ( address == null ) return false;
-    // Log.v( "CaveGL", "connect socket(): " + address );
+    // Log.v( TAG, "connect socket(): " + address );
     createSocket( address, 1 ); // default port == 1
 
     // DEBUG
-    getUuids();
+    // doGetUuids();
 
     if ( mBTSocket != null ) {
-      mBTAdapter.cancelDiscovery();
+      // cancelDiscovery should always be called before connecting
+      boolean b = mBTAdapter.cancelDiscovery();
+
       setupBTReceiver();
 
       int port = 0;
       while ( ! mBTConnected && port < 3 ) {
         ++ port;
         if ( mBTSocket != null ) {
-          // Log.v( "CaveGL", "connect socket() try port " + port );
+          // Log.v( TAG, "connect socket() try port " + port );
           try {
-            // Log.v( "CaveGL", "[3] device state " + mBTDevice.getBondState() );
+            // Log.v( TAG, "[3] device state " + mBTDevice.getBondState() );
             mBTSocket.connect();
             mBTConnected = true;
           } catch ( IOException e ) {
-            Log.v( "CaveGL", "connect socket() (port " + port + ") IO error " + e.getMessage() );
+            Log.v( TAG, "connect socket() (port " + port + ") IO error " + e.getMessage() );
             closeSocket();
             // mBTSocket = null;
           }
@@ -383,12 +427,12 @@ public class DistoXComm
         if ( mBTSocket == null && port < 3 ) {
           createSocket( address, port );
         }
-        // Log.v( "CaveGL", "connect socket() port " + port + " connected " + mBTConnected );
+        // Log.v( TAG, "connect socket() port " + port + " connected " + mBTConnected );
       }
     } else {
-      Log.v( "CaveGL", "connect socket() null socket");
+      Log.v( TAG, "connect socket() null socket");
     }
-    // Log.v( "CaveGL", "connect socket() result " + mBTConnected );
+    // Log.v( TAG, "connect socket() result " + mBTConnected );
     return mBTConnected;
   }
 
@@ -420,7 +464,7 @@ public class DistoXComm
   //           }
   //           try { Thread.sleep( 100 ); } catch ( InterruptedException e ) { }
   //         }
-  //         Log.v( "CaveGL", "download done: A3 read " + nReadPackets );
+  //         Log.v( TAG, "download done: A3 read " + nReadPackets );
   //         ret = nReadPackets;
   //       }
   //     } else {
@@ -432,7 +476,7 @@ public class DistoXComm
   //       ret = nReadPackets;
   //     }
   //   } else {
-  //     Log.v "CaveGL",( "download data: fail to connect socket");
+  //     Log.v( TAG, "download data: fail to connect socket");
   //   }
   //   destroySocket( );
   //   
@@ -444,19 +488,19 @@ public class DistoXComm
 
   private boolean startRfcommThread( )
   {
-    // Log.v( "CaveGL", "start RFcomm thread: to_read " + to_read );
+    // Log.v( TAG, "start RFcomm thread ");
     if ( mBTSocket != null ) {
       if ( mRfcommThread == null ) {
         mRfcommThread = new RfcommThread( mProtocol );
         mRfcommThread.start();
-        // Log.v( "CaveGL", "startRFcommThread started");
+        // Log.v( TAG, "startRFcommThread started");
       } else {
-        Log.v( "CaveGL", "startRFcommThread already running");
+        Log.v( TAG, "startRFcommThread already running");
       }
       return true;
     } else {
       mRfcommThread = null;
-      Log.v( "CaveGL", "startRFcommThread: null socket");
+      Log.v( TAG, "startRFcommThread: null socket");
       return false;
     }
   }
@@ -479,33 +523,5 @@ public class DistoXComm
   private boolean checkRfcommThreadNull( String msg ) { return ( mRfcommThread == null ); }
 
   private void closeProtocol() { mProtocol = null; }
-
-  // -------------------------------------------------------- 
-  // DEVICE
-
-  public void disconnectRemoteDevice( )
-  {
-    cancelRfcommThread();
-    closeProtocol();
-    destroySocket( );
-  }
-
-  public boolean connectDevice( String address )
-  {
-    if ( mRfcommThread != null ) {
-      return true;
-    }
-    if ( ! connectSocket( address ) ) {
-      return false;
-    }
-    startRfcommThread( );
-    return true;
-  }
-
-  public void disconnect()
-  {
-    cancelRfcommThread();
-    destroySocket( );
-  }
 
 };

@@ -37,9 +37,9 @@ StationTexture::StationTexture( int ns, Geometry * geom, const char ** names, un
   }
   SetTexture( width, height, bpp, texData );
   geometry.SetNVertex( 4 * nStation );
-  geometry.SetNIndex( 6 * nStation );
+  geometry.SetNSIndex( 6 * nStation );
   geometry.SetVertex( (void *)vertex );
-  geometry.SetIndex( (void *)index );
+  geometry.SetSIndex( (void *)index );
   geometry.SetNPos( 3 );  // nr. vertex position elements
   geometry.SetNCol( 1 );  // not used
   geometry.SetNTex( 2 );  // nr. texture coord elements

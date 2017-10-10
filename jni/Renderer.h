@@ -17,6 +17,7 @@
 #include "Matrix4.h"
 #include "Vector3.h"
 #include "Plane.h"
+#include "Menu.h"
 #include "DrawFlags.h"
 
 class Shader;
@@ -55,7 +56,7 @@ class Renderer : public Singleton<Renderer>
     float         aspect; // aspect-ratio H / W
     bool          initialized;
     // bool          paused;
-    unsigned int  flag;
+    unsigned int  mFlag;   // matching flags are not drawn
     float         lightTheta;
     float         lightPhi;
     Vector3       light;  // light direction
@@ -71,6 +72,7 @@ class Renderer : public Singleton<Renderer>
     Matrix4          projMatrix;
     Plane            frustumPlanes[6];
     float            frustumParams[6];
+    Menu *           mMenu;
 
   private:
     void Draw( Renderable * r );
@@ -91,20 +93,23 @@ class Renderer : public Singleton<Renderer>
       , aspect( 1.0f )
       , initialized( false )
       // , paused( true )
-      , flag( FLAG_STATIONS | FLAG_MENU )   // matching flags are NOT drawn
+      , mFlag( FLAG_STATIONS | FLAG_MENU )   // matching flags are NOT drawn
       , lightTheta( 45.0f )
       , lightPhi( 45.0f )
       , lightNP( -1 )
+      , mMenu( NULL )
     { 
       // LOGI("Renderer cstr()");
       ComputeLight();
     }
 
+    void SetMenu( Menu * menu ) { mMenu = menu; }
+
     bool ToggleMenu() 
     { 
-      flag ^= FLAG_MENU;
-      // LOGI("Renderer Toggle Menu flag 0x%02x ", flag );
-      return ( ( flag & FLAG_MENU ) == FLAG_MENU);
+      mFlag ^= FLAG_MENU;
+      // LOGI("Renderer Toggle Menu mFlag 0x%02x ", mFlag );
+      return ( ( mFlag & FLAG_MENU ) == FLAG_MENU);
     }
 
     void ComputeLight()
@@ -118,10 +123,10 @@ class Renderer : public Singleton<Renderer>
 
     Vector3 & GetLight() { return light; }
 
-    void ToggleStations() { flag ^= FLAG_STATIONS; }
-    void ToggleSurface()  { flag ^= FLAG_SURFACE; }
-    void ToggleTheSplays() { flag ^= FLAG_SPLAYS; }
-    void ToggleThePoints() { flag ^= FLAG_POINTS; }
+    void ToggleStations()  { mFlag ^= FLAG_STATIONS; debugFlag(); }
+    void ToggleSurface()   { mFlag ^= FLAG_SURFACE;  debugFlag(); }
+    void ToggleTheSplays() { mFlag ^= FLAG_SPLAYS;   debugFlag(); }
+    void ToggleThePoints() { mFlag ^= FLAG_POINTS;   debugFlag(); }
     void ToggleSplays()
     {
       if ( DoPoints ) {
@@ -133,13 +138,27 @@ class Renderer : public Singleton<Renderer>
       }
     }
 
+    void debugFlag()
+    {
+      bool fst = ( (mFlag & FLAG_STATIONS) == FLAG_STATIONS );
+      bool fsp = ( (mFlag & FLAG_SPLAYS)   == FLAG_SPLAYS   );
+      bool fpt = ( (mFlag & FLAG_POINTS)   == FLAG_POINTS   );
+      bool fsf = ( (mFlag & FLAG_SURFACE)  == FLAG_SURFACE  );
+      LOGI("FLAG: stations %c, surface %c, splays %c, points %c", fst?'N':'Y', fsf?'N':'Y', fsp?'N':'Y', fpt?'N':'Y' );
+      if ( mMenu ) {
+        mMenu->SetMenuString( fst, fsp, fpt, fsf );
+      }
+    }
+
   public:
     ~Renderer()
     {
       // LOGI("Renderer dstr()");
     }
 
-    void InitRenderer( android_app * s );
+    // @param near   near z-plane
+    // @param far    far z-plane
+    void InitRenderer( android_app * s, float near, float far );
     void DestroyRenderer();
 
     Matrix4 & Projection() { return projMatrix; }
@@ -148,6 +167,8 @@ class Renderer : public Singleton<Renderer>
     int  Width() const  { return width; }
     int  Height() const { return height; }
     float Aspect() const { return aspect; }
+
+    void RebuildFrustrum( float near, float far ) { BuildFrustum( 60.0f, aspect, near, far ); }
 
     bool Start()
     { 

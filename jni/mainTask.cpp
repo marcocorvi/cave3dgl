@@ -25,11 +25,17 @@
 
 // #include "TestModel.h"
 // #include "SimpleModel.h"
-#include "TherionModel.h"
+#include "FileModel.h"
+// #include "DistoXModel.h"
+#include "Log.h"
 
-mainTask::mainTask(const unsigned int priority, const char * filename )
+mainTask::mainTask( const unsigned int priority, android_app * st, JNIEnv * en, const char * filename )
   : Task( priority, "main" )
   , EventHandler( "main" )
+  , env( en )
+  , state( st )
+  , distoXModel( NULL )
+  , distoXConnected( false )
   , filepath( filename ? filename : "" )
   , geometry( NULL )
   , transformShader( NULL )
@@ -38,33 +44,68 @@ mainTask::mainTask(const unsigned int priority, const char * filename )
   , stations( NULL )
   , splayPoints( NULL )
   , surface( NULL )
+  , menu( NULL )
   , scale( 1.0f )
 {
-  // LOGI( "mainTask cstr" );
+  LOGI( "mainTask cstr" );
 }
 
+void
+mainTask::NotifiedModel( bool with_stations )
+{
+  // TODO update the geometry == distoXModel
+  Model * model = dynamic_cast< Model * >( geometry );
+  splayPoints->UpdateDataBuffers( model );
+
+  if ( with_stations ) {
+    AddStationsToModel( geometry );
+  }
+
+  float near = geometry->ZMin()-1; if ( near < 0 ) near = 0;
+  float far  = geometry->ZMax()+1; if ( far  < 0 ) far  = 0;
+  if ( far > near ) {
+    Renderer::Instance()->RebuildFrustrum( near, far );
+  }
+}
+
+// private
+void
+mainTask::setupTransformShader( /* Geometry * geom */ )
+{
+  // float dx = geom->XMax() - geom->XMin();
+  // float dy = geom->YMax() - geom->YMin();
+  // scale = ( 0.1f + (( dx > dy )? dx : dy ) );
+  // LOGI( "main task::Add create transform shader");
+  TransformShader * tmp = transformShader;
+  transformShader = new TransformShader( /* scale */ );
+  if ( tmp != NULL ) delete tmp;
+}
+
+// private
 Geometry *
 mainTask::AddRenderableToModel()
 {
-  // LOGI( "mainTask::Add Renderable To Model() comps %d ", model Object.GetNrComponents() );
+  LOGI( "main task::Add Renderable To Model() comps %d ", modelObject.GetNrComponents() );
   RenderableComponent * renderable_component = modelObject.AddComponent< RenderableComponent >( "renderable" );
   if ( renderable_component ) {
     Renderable & renderable = renderable_component->GetRenderable();
 
     // geometry = new SimpleModel();
     // TestModel * model = new TestModel();
-    TherionModel * model = new TherionModel();
     if ( filepath.length() > 0 ) {
-      model->Init( filepath.substr( 7 ).c_str() );
+      FileModel * file_model = new FileModel();
+      file_model->Init( filepath.substr( 7 ).c_str() );
+      geometry = file_model;
+    } else {
+      LOGI( "main task::Add create DistoX Model");
+      distoXModel = new DistoXModel( state, env, this );
+      distoXConnected = distoXModel->connect( "" ); // FIXME connect immediately or on OnResume
+      geometry = distoXModel;
     }
 
-    geometry = model;
-
-    float dx = geometry->XMax() - geometry->XMin();
-    float dy = geometry->YMax() - geometry->YMin();
-    scale = ( 0.1f + (( dx > dy )? dx : dy ) );
-
-    transformShader = new TransformShader( scale );
+    setupTransformShader( /* geometry */ );
+    renderable.SetGeometry( geometry );
+    renderable.SetShader( transformShader );
 
     Vector4 & color = renderable.GetAmbientColor();
     color.m_x = 0; // RGBA non-normalized
@@ -73,24 +114,23 @@ mainTask::AddRenderableToModel()
     color.m_w = 1.0f;
     // renderable.SetAmbientColor( color );
 
-    renderable.SetGeometry( geometry );
-    renderable.SetShader( transformShader );
-
     // FIXME
     // Renderer::Instance()->AddRenderable( &renderable );
-    // LOGI("done add model");
+    LOGI("main task:done add model");
 
     return geometry;
   } else {
-    LOGW( "mainTask::Add Renderable To Model() null renderable component" );
+    LOGW( "main task::Add Renderable To Model() null renderable component" );
   }
   return NULL;
 }
 
+// private
 SplayPoints *
 mainTask::AddSplayPointsToModel( Geometry * geom )
 {
-  TherionModel * model = dynamic_cast< TherionModel * >( geom );
+  LOGI( "mainTask::Add Splay Points To Model() comps %d ", modelObject.GetNrComponents() );
+  Model * model = dynamic_cast< Model * >( geom );
   if ( model == NULL ) {
     LOGW("WARNING NULL model");
     return NULL;
@@ -105,19 +145,21 @@ mainTask::AddSplayPointsToModel( Geometry * geom )
   return splayPoints;
 }
 
+// private
 Stations *
 mainTask::AddStationsToModel( Geometry * geom )
 {
-  // LOGI( "mainTask::Add Stations To Model() comps %d ", model Object.GetNrComponents() );
-  TherionModel * model = dynamic_cast< TherionModel * >( geom );
+  LOGI( "mainTask::Add Stations To Model() comps %d ", modelObject.GetNrComponents() );
+  Model * model = dynamic_cast< Model * >( geom );
   if ( model == NULL ) {
-    LOGW("WARNING NULL model");
+    LOGW("WARNING not a model");
     return NULL;
   }
+  int ns = model->GetNStations();
   const char ** name = model->GetStations();
   if ( name == NULL ) return NULL;
-  int ns = model->GetNStations();
 
+  if ( stations != NULL ) delete stations;
   stations = new Stations( ns, geom, name, GetMVP() );
   StationsComponent * stations_component = modelObject.AddComponent< StationsComponent >( "stations" );
   if ( stations_component ) {
@@ -127,11 +169,12 @@ mainTask::AddStationsToModel( Geometry * geom )
   return stations;
 }
 
+// private
 Surface *
 mainTask::AddSurfaceToModel( Geometry * geom )
 {
-  // LOGI( "mainTask::Add Surface To Model() comps %d ", modelObject.GetNrComponents() );
-  TherionModel * model = dynamic_cast< TherionModel * >( geom );
+  LOGI( "mainTask::Add Surface To Model() comps %d ", modelObject.GetNrComponents() );
+  FileModel * model = dynamic_cast< FileModel * >( geom );
   if ( model == NULL ) {
     LOGW("WARNING NULL model");
     return NULL;
@@ -152,10 +195,11 @@ mainTask::AddSurfaceToModel( Geometry * geom )
   return surface;
 }
 
+// private
 Status *
 mainTask::AddStatusToModel()
 {
-  // LOGI( "mainTask::Add Status To Model() comps %d ", modelObject.GetNrComponents() );
+  LOGI( "mainTask::Add Status To Model() comps %d ", modelObject.GetNrComponents() );
   Status * status = NULL;
   StatusComponent * status_component = modelObject.AddComponent< StatusComponent >( "status" );
   if ( status_component ) {
@@ -165,23 +209,23 @@ mainTask::AddStatusToModel()
   return status;
 }
 
+// private
 Menu *
 mainTask::AddMenuToModel()
 {
-  // LOGI( "mainTask::Add Menu To Model() comps %d ", modelObject.GetNrComponents() );
-  Menu * menu = NULL;
+  LOGI( "mainTask::Add Menu To Model() comps %d ", modelObject.GetNrComponents() );
   MenuComponent * menu_component = modelObject.AddComponent< MenuComponent >( "menu" );
   if ( menu_component ) {
-    menu = menu_component->GetMenu();
+    return menu_component->GetMenu();
   }
-  // LOGI("done add menu");
-  return menu;
+  return NULL;
 }
 
+// private
 void
 mainTask::AddTransformToModel( Geometry * geom, Status * status )
 {
-  // LOGI( "mainTask::Add Transform To Model() comps %d geom %s", modelObject.GetNrComponents(), geom->Name() );
+  LOGI( "mainTask::Add Transform To Model() comps %d geom %s", modelObject.GetNrComponents(), geom->Name() );
   TransformComponent * transform_component = modelObject.AddComponent<TransformComponent>( "transform" );
   if ( transform_component )
   {
@@ -265,10 +309,12 @@ mainTask::HandleEvent( EventType * evt )
     case PAUSE_EVENT:
       // LOGI( "mainTask handle event PAUSE");
       DetachEventHandlers();
+      if ( distoXModel ) distoXModel->disconnect();
       break;
     case RESUME_EVENT:
       // LOGI( "mainTask handle event RESUME");
       AttachEventHandlers();
+      if ( distoXModel ) distoXModel->connect("");
       break;
   }
 }
@@ -301,23 +347,26 @@ mainTask::~mainTask()
 bool
 mainTask::Start()
 {
-  // LOGI( "mainTask::Start()" );
+  // LOGI( "main task::Start()" );
   // AddMovementToModel();
 
   Geometry * geom = AddRenderableToModel();
-  // at this point mainTask has a pointe to the MVP matrix (inside the TransformShader)
+  // at this point mainTask has a pointer to the MVP matrix (inside the TransformShader)
 
-  AddStationsToModel( geom );
-  AddSplayPointsToModel( geom );
-  AddSurfaceToModel( geom );
-
+  if ( distoXModel ) {
+    AddSplayPointsToModel( geom );
+    AddStationsToModel( geom );
+  } else {
+    AddSplayPointsToModel( geom );
+    AddStationsToModel( geom );
+    AddSurfaceToModel( geom );
+  }
   Status * status = AddStatusToModel(); 
-
-  Menu * menu = AddMenuToModel();
-
+  menu = AddMenuToModel();
   AddTransformToModel( geom, status );
-
   AttachEventHandlers( );  // must come after the previous two
+
+  Renderer::Instance()->SetMenu( menu );
 
   // IT IS NOT NECEESSARY TO ADD SHADERS TO THE RENDERER
   // if ( transformShader ) {
@@ -326,18 +375,23 @@ mainTask::Start()
   //   LOGW("WARNING null transform shader");
   // }
 
-  // LOGI( "mainTask::Start() done" );
+  // LOGI( "main task::Start() done" );
   return true;
 }
 
+
 void mainTask::OnSuspend()
 {
-  // LOGI( "mainTask::OnSuspend()" );
+  LOGI( "main task::OnSuspend()" );
+  if ( distoXModel != NULL && distoXConnected ) {
+    distoXModel->disconnect( );
+    distoXConnected = false;
+  }
 }
 
 void mainTask::Update()
 {
-  // LOGI( "mainTask::update()" );
+  // LOGI( "main task::update()" );
   sendEvent( UPDATE_EVENT );
   sendEvent( POSTUPDATE_EVENT );
   sendEvent( PRERENDER_EVENT );
@@ -346,11 +400,14 @@ void mainTask::Update()
 
 void mainTask::OnResume()
 {
-  // LOGI( "mainTask::OnResume()" );
+  LOGI( "main task::OnResume()" );
+  if ( distoXModel != NULL && ! distoXConnected ) {
+    distoXModel->connect( "" );
+  }
 }
 
 void mainTask::Stop()
 {
-  // LOGI( "mainTask::Stop()" );
-  // DetachEventHandlers();
+  LOGI( "main task::Stop()" );
+  DetachEventHandlers();
 }

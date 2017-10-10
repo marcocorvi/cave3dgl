@@ -18,7 +18,7 @@ void android_handle_cmd( struct android_app * s, int32_t cmd )
     case APP_CMD_INIT_WINDOW:
       // LOGI("INIT WINDOW");
       r = Renderer::Instance();
-      if ( r != NULL ) r->InitRenderer( s );
+      if ( r != NULL ) r->InitRenderer( s, 1.0f, 1000.0f ); // near, far Z-planes
       Android::SetRender( true );
       break;
     case APP_CMD_TERM_WINDOW:

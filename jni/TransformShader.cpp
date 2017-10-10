@@ -5,11 +5,11 @@
 #include "Renderable.h"
 #include "Renderer.h"
 
-TransformShader::TransformShader( float s )
+TransformShader::TransformShader( /* float s */ )
   : Shader( "transform" )
-  , scale( s )
+  // , scale( s )
 {
-  // LOGI( "TransformShader::cstr()");
+  // LOGI( "Transform Shader::cstr()");
   vertexShaderCode = 
     "uniform mat4 u_mModel; \n"
     "attribute vec4 a_vPosition; \n"
@@ -37,13 +37,13 @@ TransformShader::LinkShader()
 
   proj = Renderer::Instance()->Projection();
 
-  // LOGI( "TransformShader::link %s scale %.2f handles %d %d %d", Name(), scale, transformHandle, posHandle, colHandle );
+  // LOGI( "Transform Shader::link %s scale %.2f handles %d %d %d", Name(), scale, transformHandle, posHandle, colHandle );
 }
 
 void
 TransformShader::SetupShader( Renderable & renderable )
 {
-  // LOGI( "TransformShader::Setup()");
+  // LOGI( "Transform Shader::Setup()");
   Geometry * g = renderable.GetGeometry();
   if ( g != NULL ) {
     Shader::SetupShader( renderable );

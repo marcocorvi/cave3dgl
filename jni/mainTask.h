@@ -22,13 +22,20 @@
 #include "SplayPoints.h"
 #include "Surface.h"
 #include "Menu.h"
+#include "DistoXModel.h"
+#include <android_native_app_glue.h>
 
 class mainTask : public Task
                , public EventHandler
 {
   private:
-    Geometry  * geometry;        // 3D model (TherionModel) [owned]
-    TransformShader * transformShader;    // This is the TransformShader of the model
+    JNIEnv * env;
+    android_app * state;
+    DistoXModel * distoXModel;   // non-null if displaying from DistoX
+    bool          distoXConnected;
+
+    Geometry        * geometry;        // 3D model (Model) [owned]
+    TransformShader * transformShader; // This is the TransformShader of the model
     PointShader     * pointShader; 
     SurfaceShader   * surfaceShader; 
     std::string filepath;
@@ -39,10 +46,11 @@ class mainTask : public Task
     Stations *    stations;      // owned
     Surface *     surface;       // owned
     SplayPoints * splayPoints;   // owned
+    Menu *        menu;          // not owned
     float scale;
   
   public:
-    mainTask(const unsigned int priority, const char * filename = NULL );
+    mainTask( const unsigned int priority, android_app * st, JNIEnv * en, const char * filename = NULL );
     virtual ~mainTask();
   
     // From Task
@@ -57,6 +65,8 @@ class mainTask : public Task
 
     void HandleEvent( EventType * evt );
 
+    void NotifiedModel( bool with_stations );
+
   private:
     const Matrix4 * GetMVP() { return ( transformShader != NULL )? transformShader->GetMVP() : NULL; }
 
@@ -70,6 +80,9 @@ class mainTask : public Task
     Surface * AddSurfaceToModel( Geometry * geom );
 
     SplayPoints * AddSplayPointsToModel( Geometry * geom );
+
+    void setupTransformShader( /* Geometry * geom */ );
+
 };
 
 #endif // MAIN_TASK_H_

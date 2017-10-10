@@ -28,14 +28,14 @@ Surface::Surface( const float * coords, int ne, int nn, int ns, Shader * shader 
   // LOGI("Surface cstr: %d x %d shader %s", ne, nn, shader->Name() );
   nVertex = nx * ny;
   #if TYPE == GL_TRIANGLES
-    nIndex = 2 * 3 * (nx-1) * (ny-1);
+    nSIndex = 2 * 3 * (nx-1) * (ny-1);
   #else
-    nIndex = 2 * (nx-1) * ny + 2 * (ny-1) * nx;
+    nSIndex = 2 * (nx-1) * ny + 2 * (ny-1) * nx;
   #endif
-  // LOGI("Surface %dx%d nr.vertex %d nr.index %d", nx, ny, nVertex, nIndex );
+  // LOGI("Surface %dx%d nr.vertex %d nr.index %d", nx, ny, nVertex, nSIndex );
 
   vertex_data = new float[ stride * nVertex ];
-  index_data = new unsigned short[ nIndex ];
+  index_data = new unsigned short[ nSIndex ];
   for ( int k2=0; k2 < ny; ++k2 ) {
     for ( int k1=0; k1 < nx; ++k1 ) {
       int kv = stride * (k2*nx+k1);
@@ -72,13 +72,13 @@ Surface::Surface( const float * coords, int ne, int nn, int ns, Shader * shader 
       }
     }
   #endif
-  if ( j > nIndex ) {
-    LOGW("ERROR overrun index array: %d / %d ", j, nIndex );
-  } else if ( j < nIndex ) {
-    LOGW("ERROR underrun index array: %d / %d ", j, nIndex );
+  if ( j > nSIndex ) {
+    LOGW("ERROR overrun index array: %d / %d ", j, nSIndex );
+  } else if ( j < nSIndex ) {
+    LOGW("ERROR underrun index array: %d / %d ", j, nSIndex );
   }
   SetVertex( vertex_data );
-  SetIndex( index_data );
+  SetSIndex( index_data );
   SetVertexStride( stride * sizeof(float) );
   SetNPos( 3 ); // vertex position
 

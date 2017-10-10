@@ -21,7 +21,6 @@ class Object
 
     ComponentMap components;
 
-    template<class T> T* GetComponent() { return static_cast<T*>( GetComponent( T::GetId() ) ); }
 
     Component * GetComponent( unsigned int id )
     {
@@ -34,6 +33,8 @@ class Object
     ~Object();
 
     size_t GetNrComponents() const { return components.size(); }
+
+    template<class T> T* GetComponent() { return static_cast<T*>( GetComponent( T::GetId() ) ); }
 
     /** return the component of class T
      *  ( create and add it if it did not exist )

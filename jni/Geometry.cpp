@@ -1,11 +1,13 @@
 #include "Geometry.h"
 
 #include "Log.h"
+#include "Functions.h"
 
 
 void 
 Geometry::CopyBBox( const Geometry * geom )
 {
+  // LOGI("copy BBox");
   xmax = geom->xmax;  xmin = geom->xmin;
   ymax = geom->ymax;  ymin = geom->ymin;
   zmax = geom->zmax;  zmin = geom->zmin;
@@ -17,25 +19,33 @@ Geometry::CopyBBox( const Geometry * geom )
 void 
 Geometry::CopySpec( const Geometry * geom )
 {
+  // LOGI("copy Spec");
   vertexStride = geom->vertexStride;
   nVertex = geom->nVertex;
-  nIndex  = geom->nIndex;
+  nLIndex = geom->nLIndex;
+  nSIndex = geom->nSIndex;
   nPos    = geom->nPos;
   nCol    = geom->nCol;
   nTex    = geom->nTex;
   nStations = geom->nStations;
-  vertex  = geom->vertex;
-  index   = geom->index;
+  gVertex  = geom->gVertex;
+  gLIndex  = geom->gLIndex;
+  gSIndex  = geom->gSIndex;
 }
 
 void 
-Geometry::InitBBox()
+Geometry::InitBBox( bool moveVertexes )
 {
-  float * v = (float *)vertex;
-  // LOGI("Geometry::InitBBox()");
-  xmin = xmax = v[0];
-  ymin = ymax = v[1];
-  zmin = zmax = v[2];
+  float * v = (float *)gVertex;
+  // LOGI("init BBox vertex %p nr %d ", gVertex, nVertex);
+  if ( moveVertexes ) {
+    xmin = xmax = v[0];
+    ymin = ymax = v[1];
+    zmin = zmax = v[2];
+  } else {
+    xmin = xmax = ymin = ymax = zmin = zmax = 0;
+  }
+
   for ( int k=1; k<nVertex; ++k ) {
     float x = v[3*k + 0];
     float y = v[3*k + 1];
@@ -47,21 +57,32 @@ Geometry::InitBBox()
     if ( z < zmin ) { zmin = z; }
     else if ( z > zmax ) { zmax = z; }
   }
-#if 1
-  xc = ( xmin + xmax ) / 2;
-  yc = ( ymin + ymax ) / 2;
-  zc = ( zmin + zmax ) / 2;
 
-  for ( int k=0; k<nVertex; ++k ) {
-    v[3*k+0] -= xc;
-    v[3*k+1] -= yc;
-    v[3*k+2] -= zc;
+  if ( moveVertexes ) {
+    xc = ( xmin + xmax ) / 2;
+    yc = ( ymin + ymax ) / 2;
+    zc = ( zmin + zmax ) / 2;
+
+    // OFFSET vertexes by the center (xc, yc, zc)
+    for ( int k=0; k<nVertex; ++k ) {
+      v[3*k+0] -= xc;
+      v[3*k+1] -= yc;
+      v[3*k+2] -= zc;
+    }
+  } else {
+    xc = 0;
+    yc = 0;
+    zc = 0;
+    if ( xmax < -xmin ) { xmax = -xmin; } else { xmin = -xmax; }
+    if ( ymax < -ymin ) { ymax = -ymin; } else { ymin = -ymax; }
+    if ( zmax < -zmin ) { zmax = -zmin; } else { zmin = -zmax; }
   }
-#else
-  xc = 0.0f;
-  yc = 0.0f;
-  zc = 0.0f;
-#endif
+  zc   += Z_OFFSET;
+  zmax += Z_OFFSET;
+  // zmin += Z_OFFSET;
+
+  LOGI("BBox X %.6f %.6f   Y %.6f %.6f   Z %.6f %.6f C %.6f %.6f %.6f", xmin, xmax, ymin, ymax, zmin, zmax, xc, yc, zc );
 }
+
     
 

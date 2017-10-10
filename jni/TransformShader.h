@@ -13,10 +13,10 @@ class TransformShader : public Shader
     GLint   transformHandle;
     GLint   posHandle;
     GLint   colHandle;
-    float   scale;
+    // float   scale;
 
   public:
-    TransformShader( float s );
+    TransformShader( /* float s */ );
     virtual ~TransformShader() { }
 
     virtual void LinkShader();

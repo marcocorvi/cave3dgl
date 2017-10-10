@@ -1,4 +1,5 @@
 
+BUILD = debug
 
 default: ndk apk install
 
@@ -6,14 +7,15 @@ ndk:
 	ndk-build
 
 apk:
-	ant clean
-	ant debug
+	ant $(BUILD)
 
 install:
-	adb install -r bin/OpenGL-debug.apk
+	adb install -r bin/Cave3Dgl-$(BUILD).apk
 
 clean:
-	rm -f obj/local/armeabi/objs/Test/*.o
+	ant clean
+	rm -f obj/local/armeabi/objs/Cave3Dgl/*.o
+	rm -f obj/local/armeabi/objs/Cave3Dgl/*.o.d
 
 distclean:
 	rm -rf obj

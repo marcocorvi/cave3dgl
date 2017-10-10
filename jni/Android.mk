@@ -46,7 +46,8 @@ StationsComponent.cpp \
 SurfaceComponent.cpp \
 Geometry.cpp \
 Model.cpp \
-TherionModel.cpp \
+FileModel.cpp \
+DistoXModel.cpp \
 SplayPoints.cpp \
 LoxFile.cpp \
 LoxBitmap.cpp \

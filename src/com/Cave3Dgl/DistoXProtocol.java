@@ -35,9 +35,14 @@ import android.widget.Toast;
 
 public class DistoXProtocol
 {
+  static final String TAG = "Cave3Dgl";
+
   private Socket  mSocket = null;
   private DataInputStream  mIn;
   private DataOutputStream mOut;
+  // private DataQueue     mQueue;
+  private DistoXComm       mComm;
+
   // private byte[] mAddress;   // request-reply address
   // private byte[] mReplyBuffer;     // reply data
   private byte[] mAcknowledge;
@@ -87,7 +92,7 @@ public class DistoXProtocol
     final IOException[] maybeException = { null };
     final Thread reader = new Thread() {
       public void run() {
-        // Log.v( "CaveGL", "reader run " + dataRead[0] + "/" + toRead[0] );
+        // Log.v( TAG, "reader run " + dataRead[0] + "/" + toRead[0] );
         try {
           // synchronized( dataRead ) 
           {
@@ -96,7 +101,7 @@ public class DistoXProtocol
             dataRead[0] += count[0];
           }
         } catch ( ClosedByInterruptException e ) {
-          Log.v( "CaveGL", "reader closed by interrupt");
+          Log.v( TAG, "reader closed by interrupt");
         } catch ( IOException e ) {
           maybeException[0] = e;
         }
@@ -105,14 +110,14 @@ public class DistoXProtocol
     reader.start();
 
     for ( int k=0; k<mMaxTimeout; ++k) {
-      // Log.v( "CaveGL", "interrupt loop " + k + " " + dataRead[0] + "/" + toRead[0] );
+      // Log.v( TAG, "interrupt loop " + k + " " + dataRead[0] + "/" + toRead[0] );
       try {
         reader.join( timeout );
-      } catch ( InterruptedException e ) { Log.v( "CaveGL", "reader join-1 interrupted"); }
+      } catch ( InterruptedException e ) { Log.v( TAG, "reader join-1 interrupted"); }
       if ( ! reader.isAlive() ) break;
       {
         Thread interruptor = new Thread() { public void run() {
-          // Log.v( "CaveGL", "interruptor run " + dataRead[0] );
+          // Log.v( TAG, "interruptor run " + dataRead[0] );
           for ( ; ; ) {
             // synchronized ( dataRead ) 
             {
@@ -124,17 +129,17 @@ public class DistoXProtocol
               }
             }
           }
-          // Log.v( "CaveGL", "interruptor done " + dataRead[0] );
+          // Log.v( TAG, "interruptor done " + dataRead[0] );
         } };
         interruptor.start();
 
         try {
           interruptor.join( 200 );
-        } catch ( InterruptedException e ) { Log.v( "CaveGL", "interruptor join interrupted"); }
+        } catch ( InterruptedException e ) { Log.v( TAG, "interruptor join interrupted"); }
       }
       try {
         reader.join( 200 );
-      } catch ( InterruptedException e ) { Log.v( "CaveGL", "reader join-2 interrupted"); }
+      } catch ( InterruptedException e ) { Log.v( TAG, "reader join-2 interrupted"); }
       if ( ! reader.isAlive() ) break; 
     }
     if ( maybeException[0] != null ) throw maybeException[0];
@@ -143,11 +148,13 @@ public class DistoXProtocol
 
 //-----------------------------------------------------
 
-  public DistoXProtocol( DataInputStream in, DataOutputStream out )
+  public DistoXProtocol( DataInputStream in, DataOutputStream out, DistoXComm comm )
   {
     // mSocket = socket;
     // mDistoX = distox;
     mSeqBit = (byte)0xff;
+    // mQueue  = queue;
+    mComm   = comm;
 
     // mHeadTailA3 = new byte[3];   // to read head/tail for Protocol A3
     // mHeadTailA3[0] = 0x38;
@@ -170,7 +177,7 @@ public class DistoXProtocol
     //   }
     // } catch ( IOException e ) {
     //   // NOTE socket is null there is nothing we can do
-    //   Log.v( "CaveGL", "Proto cstr conn failed " + e.getMessage() );
+    //   Log.v( TAG, "Proto cstr conn failed " + e.getMessage() );
     // }
     mIn  = in;
     mOut = out;
@@ -193,7 +200,7 @@ public class DistoXProtocol
   {
     byte type = (byte)(mBuffer[0] & 0x3f);
     // if ( TDLog.LOG_PROTO ) {
-    //   Log.v( "CaveGL",
+    //   Log.v( TAG,
     //     "packet type " + type + " " + 
     //     String.format("%02x %02x %02x %02x %02x %02x %02x %02x", mBuffer[0], mBuffer[1], mBuffer[2],
     //     mBuffer[3], mBuffer[4], mBuffer[5], mBuffer[6], mBuffer[7] ) );
@@ -227,14 +234,16 @@ public class DistoXProtocol
         // mRoll = r * 180.0 / 128.0;
 
         // if ( TDLog.LOG_PROTO ) {
-        //   Log.v( "CaveGL", "Proto packet data " + 
-        //     String.format(Locale.US, " %7.2f %6.1f %6.1f", mDistance, mBearing, mClino ) );
+        //   Log.v( TAG, "Proto packet data " + String.format(Locale.US, " %7.2f %6.1f %6.1f", mDistance, mBearing, mClino ) );
         // }
         double h = mDistance * Math.cos( mClino * Math.PI/180.0 );
         z = mDistance * Math.sin( mClino * Math.PI/180.0 );
         n = mDistance * Math.cos( mBearing * Math.PI/180.0 );
         e = mDistance * Math.sin( mBearing * Math.PI/180.0 );
 
+        mComm.addPoint( e, n, z );
+
+        mHasData = false;
         return DISTOX_PACKET_DATA;
       case 0x02: // g
         // mGX = MemoryOctet.toInt( mBuffer[2], mBuffer[1] );
@@ -244,7 +253,7 @@ public class DistoXProtocol
         // if ( mGX > TopoDroidUtil.ZERO ) mGX = mGX - TopoDroidUtil.NEG;
         // if ( mGY > TopoDroidUtil.ZERO ) mGY = mGY - TopoDroidUtil.NEG;
         // if ( mGZ > TopoDroidUtil.ZERO ) mGZ = mGZ - TopoDroidUtil.NEG;
-        // Log.v( "CaveGL", "handle Packet G " + String.format(" %x %x %x", mGX, mGY, mGZ ) );
+        // Log.v( TAG, "handle Packet G " + String.format(" %x %x %x", mGX, mGY, mGZ ) );
         return DISTOX_PACKET_G;
       case 0x03: // m
         // mMX = MemoryOctet.toInt( mBuffer[2], mBuffer[1] );
@@ -254,7 +263,7 @@ public class DistoXProtocol
         // if ( mMX > TopoDroidUtil.ZERO ) mMX = mMX - TopoDroidUtil.NEG;
         // if ( mMY > TopoDroidUtil.ZERO ) mMY = mMY - TopoDroidUtil.NEG;
         // if ( mMZ > TopoDroidUtil.ZERO ) mMZ = mMZ - TopoDroidUtil.NEG;
-        // Log.v( "CaveGL", "handle Packet M " + String.format(" %x %x %x", mMX, mMY, mMZ ) );
+        // Log.v( TAG, "handle Packet M " + String.format(" %x %x %x", mMX, mMY, mMZ ) );
         return DISTOX_PACKET_M;
       case 0x04: // vector data packet
         // if ( mDevice.mType == Device.DISTO_X310 ) {
@@ -278,7 +287,7 @@ public class DistoXProtocol
         // mReplyBuffer[3] = mBuffer[6];
         return DISTOX_PACKET_REPLY;
       default:
-        Log.v( "CaveGL",
+        Log.v( TAG,
           "packet error. type " + type + " " + 
           String.format("%02x %02x %02x %02x %02x %02x %02x %02x", mBuffer[0], mBuffer[1], mBuffer[2],
           mBuffer[3], mBuffer[4], mBuffer[5], mBuffer[6], mBuffer[7] ) );
@@ -291,10 +300,10 @@ public class DistoXProtocol
   public int readPacket( )
   {
     try {
-      // Log.v( "CaveGL", "VD Proto read packet available " + available );
+      // Log.v( TAG, "VD Proto read packet " );
       mIn.readFully( mBuffer, 0, 8 );
       byte seq  = (byte)(mBuffer[0] & 0x80); // sequence bit
-      // Log.v( "CaveGL", "VD read packet seq bit " + String.format("%02x %02x %02x", mBuffer[0], seq, mSeqBit ) );
+      // Log.v( TAG, "VD read packet seq bit " + String.format("%02x %02x %02x", mBuffer[0], seq, mSeqBit ) );
       boolean ok = ( seq != mSeqBit );
       mSeqBit = seq;
       // if ( (mBuffer[0] & 0x0f) != 0 ) // ack every packet
@@ -304,12 +313,12 @@ public class DistoXProtocol
       }
       if ( ok ) return handlePacket();
     } catch ( EOFException e ) {
-      Log.v( "CaveGL", "Proto read packet EOFException" + e.toString() );
+      Log.v( TAG, "Proto read packet EOFException" + e.toString() );
     } catch (ClosedByInterruptException e ) {
-      Log.v( "CaveGL", "Proto read packet ClosedByInterruptException" + e.toString() );
+      Log.v( TAG, "Proto read packet ClosedByInterruptException" + e.toString() );
     } catch (IOException e ) {
       // this is OK: the DistoX has been turned off
-      Log.v( "CaveGL", "Proto read packet IOException " + e.toString() + " OK distox turned off" );
+      Log.v( TAG, "Proto read packet IOException " + e.toString() + " OK distox turned off" );
       return DISTOX_ERR_OFF;
     }
     return DISTOX_PACKET_NONE;

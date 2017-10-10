@@ -60,7 +60,7 @@ PointShader::LinkShader()
 void
 PointShader::SetupShader( Renderable & renderable )
 {
-  // LOGI( "TransformShader::Setup()");
+  // LOGI( "Point Shader::Setup Shader()");
   Geometry * g = renderable.GetGeometry();
   if ( g != NULL ) {
     Shader::SetupShader( renderable );

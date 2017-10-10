@@ -15,9 +15,11 @@ class Geometry
     std::string name;
     unsigned int flag; // drawing flag : geom objects type
     int  nVertex;
-    int  nIndex;
-    void * vertex;
-    void * index;
+    int  nLIndex;
+    int  nSIndex;
+    void * gVertex;
+    void * gLIndex;
+    void * gSIndex;
  
     int  nPos;
     int  nCol;
@@ -48,9 +50,11 @@ class Geometry
       , name( n )
       , flag( f )
       , nVertex( 0 )
-      , nIndex( 0 )
-      , vertex( NULL )
-      , index( NULL )
+      , nLIndex( 0 )
+      , nSIndex( 0 )
+      , gVertex( NULL )
+      , gLIndex( NULL )
+      , gSIndex( NULL )
       , nPos( 0 )
       , nCol( 0 )
       , nTex( 0 )
@@ -58,6 +62,7 @@ class Geometry
       , nLegs( 0 )
       , vertexStride( 0 )
     { }
+
     virtual ~Geometry() 
     {
       // LOGI("Geometry dstr %s", name.c_str() );
@@ -74,14 +79,18 @@ class Geometry
     const char * Name() const { return name.c_str(); }
 
     void SetNVertex( int n ) { nVertex = n; }
-    void SetNIndex( int n )  { nIndex = n; }
+    void SetNLIndex( int n ) { nLIndex = n; }
+    void SetNSIndex( int n ) { nSIndex = n; }
     int  NVertex() const { return nVertex; }
-    int  NIndex() const { return nIndex; }
+    int  NLIndex() const { return nLIndex; }
+    int  NSIndex() const { return nSIndex; }
 
-    void SetVertex( void * buf ) { vertex = buf; }
-    void SetIndex( void * buf )  { index = buf; }
-    void * Vertex() { return vertex; }
-    void * Index()  { return index; }
+    void SetVertex( void * buf ) { gVertex = buf; }
+    void SetLIndex( void * buf ) { gLIndex = buf; }
+    void SetSIndex( void * buf ) { gSIndex = buf; }
+    void * Vertex() { return gVertex; }
+    void * LIndex() { return gLIndex; }
+    void * SIndex() { return gSIndex; }
 
     void SetNPos( int n ) { nPos = n; }
     void SetNCol( int n ) { nCol = n; }
@@ -103,7 +112,7 @@ class Geometry
     Vector3 GetCenter() const { return Vector3( xc, yc, zc ); }
 
   protected:
-    void InitBBox();
+    void InitBBox( bool moveVertexes );
 
     void CopyBBox( const Geometry * geom );
     void CopySpec( const Geometry * geom );
