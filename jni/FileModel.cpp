@@ -93,7 +93,7 @@ FileModel::InitFromTh( const char * filename )
   if ( z_scale > scale ) scale = z_scale;
   scale = 20.0f / scale;
 
-  station_name = new char * [therion_ns];
+  station_name = new Station[therion_ns];
   vertex = new float[ 3 * (therion_ns + therion_nx) ];
   lindex  = new unsigned short[ 2 * therion_nl ];
   sindex  = new unsigned short[ 2 * therion_nx ];
@@ -104,25 +104,26 @@ FileModel::InitFromTh( const char * filename )
   std::vector< TherionShot * > & thx = thf.GetSplays();
 
   for ( int k=0; k<therion_ns; ++k ) {
-    station_name[k] = NULL;
     std::pair< std::map<std::string,int>::iterator, bool > ret =
       stations.insert( std::pair<std::string, int>( thst[k]->Name(), k ) );
     if ( ret.second ) { 
       std::string tmp = ret.first->first;
       size_t pos = tmp.find("@");
       if ( pos != std::string::npos ) {
-        station_name[k] = new char[pos+1];
-        for ( size_t j=0; j<pos; ++j) station_name[k][j] = tmp[j];
-        station_name[k][pos] = 0;
+        station_name[k].idx  = k;
+        station_name[k].name = new char[pos+1];
+        for ( size_t j=0; j<pos; ++j) station_name[k].name[j] = tmp[j];
+        station_name[k].name[pos] = 0;
       }
     }
   }
 
   for ( int k=0; k<therion_ns; ++k ) {
-    vertex[3*k+0] = SIGN_X( (thst[k]->Z() - x_offset) * scale );
-    vertex[3*k+1] = SIGN_Y( (thst[k]->E() - y_offset) * scale );
-    vertex[3*k+2] = SIGN_Z( (thst[k]->N() - z_offset) * scale ); // XXX + Z_OFFSET;
-    LOGI("STATION %s %.2f %.2f %.2f", station_name[k], vertex[3*k+0], vertex[3*k+1], vertex[3*k+2] );
+    int kk = station_name[k].idx;
+    vertex[3*kk+0] = SIGN_X( (thst[k]->Z() - x_offset) * scale );
+    vertex[3*kk+1] = SIGN_Y( (thst[k]->E() - y_offset) * scale );
+    vertex[3*kk+2] = SIGN_Z( (thst[k]->N() - z_offset) * scale ); // XXX + Z_OFFSET;
+    LOGI("STATION %s %.2f %.2f %.2f", station_name[k].name, vertex[3*kk+0], vertex[3*kk+1], vertex[3*kk+2] );
   }
   for ( int k=0; k<therion_nx; ++k ) {
     // FIXME this assumes that splays have FROM station
@@ -327,16 +328,17 @@ FileModel::InitFromLox( const char * filename )
   }
 
   // LOGI("Named stations %d map size %d", therion_ns, stations.size() );
-  station_name = new char * [therion_ns];
+  station_name = new Station[therion_ns];
   for ( std::map< std::string, int >::iterator it = stations.begin(); it != stations.end(); ++it ) {
     const std::string & tmp = it->first;
     k = it->second;
     size_t pos = tmp.find("@");
     if ( pos == std::string::npos ) pos = tmp.length();
     // assert( pos > 0 );
-    station_name[k] = new char[pos+1];
-    for ( size_t j=0; j<pos; ++j) station_name[k][j] = tmp[j];
-    station_name[k][pos] = 0;
+    station_name[k].idx = k;
+    station_name[k].name = new char[pos+1];
+    for ( size_t j=0; j<pos; ++j) station_name[k].name[j] = tmp[j];
+    station_name[k].name[pos] = 0;
   }
 
   therion_nl = 0;

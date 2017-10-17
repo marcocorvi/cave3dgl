@@ -17,7 +17,10 @@ class DistoXModel : public Model
     static DistoXModel * theModel;
     mainTask * mTask;
     double e0, n0, z0; // last station coordinates
-
+    
+    double e1, n1, z1; // reference data to check "equal" data
+    int cnt;           // number of last "equal" data
+    int mStationNumber;
 
   public:
     static DistoXModel * instance() { return theModel; }

@@ -8,32 +8,34 @@
 #include "Vector4.h"
 #include "Matrix4.h"
 #include "Geometry.h"
+#include "Station.h"
+#include "Model.h"
 #include "Log.h"
 
 class Stations : public Renderable
 {
   private:
-    StationTexture stations;
+    StationTexture stationTexture;
 
     TextureShader shader;
     const Matrix4 * mvp;
 
   public:
-    Stations( int ns, Geometry * geom, const char ** names, const Matrix4 * mat )
-      : stations( ns, geom, names )
+    Stations( int ns, Geometry * geom, const Station * names, const Matrix4 * mat )
+      : stationTexture( ns, geom, names )
       , mvp( mat )
     { 
       assert( mvp );
-      shader.SetTexture( & stations );
+      shader.SetTexture( & stationTexture );
 
       // Renderable fields:
-      SetGeometry( stations.GetMyGeometry() );
+      SetGeometry( stationTexture.GetMyGeometry() );
       SetShader( & shader );
       // SetTransform( NULL );
       // SetColor( color );
     }
 
-    Texture * GetTexture() { return & stations; }
+    Texture * GetTexture() { return & stationTexture; }
 
     void UpdateStations() 
     {
@@ -41,9 +43,24 @@ class Stations : public Renderable
         // LOGI("Stations: update station texture MVP is null");
         return;
       }
-      stations.ComputeVertices( mvp );
+      stationTexture.ComputeVertices( mvp );
     }
 
+
+    void UpdateStations( Geometry * geom )
+    {
+      Model * model = dynamic_cast< Model * >( geom );
+      int ns = model->GetNStations();
+      const Station * name = model->GetStations();
+      if ( name == NULL ) {
+        LOGI("update stations model has null stations");
+        return;
+      }
+
+      LOGI("update stations model has %d stations", ns );
+      stationTexture.SetStationNames( ns, name );
+      stationTexture.ComputeVertices( mvp );
+    }
 };
 
 #endif

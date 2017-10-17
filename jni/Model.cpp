@@ -38,7 +38,7 @@ Model::Model( const char * name )
 Model::~Model()
 {
   if ( station_name ) {
-    for ( int k = 0; k < therion_ns; ++k ) if ( station_name[k] ) delete[] station_name[k];
+    for ( int k = 0; k < therion_ns; ++k ) if ( station_name[k].name ) delete[] station_name[k].name;
     delete[] station_name;
   }
 }

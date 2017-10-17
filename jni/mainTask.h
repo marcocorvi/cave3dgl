@@ -19,7 +19,7 @@
 #include "EventHandler.h"
 #include "Status.h"
 #include "Stations.h"
-#include "SplayPoints.h"
+#include "Points.h"
 #include "Surface.h"
 #include "Menu.h"
 #include "DistoXModel.h"
@@ -45,7 +45,7 @@ class mainTask : public Task
     Object        modelObject;
     Stations *    stations;      // owned
     Surface *     surface;       // owned
-    SplayPoints * splayPoints;   // owned
+    Points *      points;        // owned
     Menu *        menu;          // not owned
     float scale;
   
@@ -79,7 +79,7 @@ class mainTask : public Task
 
     Surface * AddSurfaceToModel( Geometry * geom );
 
-    SplayPoints * AddSplayPointsToModel( Geometry * geom );
+    Points * AddPointsToModel( Geometry * geom );
 
     void setupTransformShader( /* Geometry * geom */ );
 

@@ -2,7 +2,6 @@
 
 #include "Log.h"
 #include "Events.h"
-#include "TGAData.h"
 // #include "MovementComponent.h"
 // #include "PatrolComponent.h"
 #include "TransformComponent.h"
@@ -12,7 +11,7 @@
 #include "MenuComponent.h"
 #include "SurfaceShader.h"
 #include "RenderableComponent.h"
-#include "SplayPointComponent.h"
+#include "PointsComponent.h"
 #include "Renderable.h"
 #include "Renderer.h"
 #include "Transform.h"
@@ -42,7 +41,7 @@ mainTask::mainTask( const unsigned int priority, android_app * st, JNIEnv * en, 
   , pointShader( NULL )
   , surfaceShader( NULL )
   , stations( NULL )
-  , splayPoints( NULL )
+  , points( NULL )
   , surface( NULL )
   , menu( NULL )
   , scale( 1.0f )
@@ -55,10 +54,15 @@ mainTask::NotifiedModel( bool with_stations )
 {
   // TODO update the geometry == distoXModel
   Model * model = dynamic_cast< Model * >( geometry );
-  splayPoints->UpdateDataBuffers( model );
+  points->UpdateDataBuffers( model );
 
   if ( with_stations ) {
-    AddStationsToModel( geometry );
+    if ( stations != NULL ) {
+      stations->UpdateStations( geometry );
+      // AddStationsToModel( geometry );
+    } else {
+      LOGI("notified with NULL stations");
+    }
   }
 
   float near = geometry->ZMin()-1; if ( near < 0 ) near = 0;
@@ -126,23 +130,23 @@ mainTask::AddRenderableToModel()
 }
 
 // private
-SplayPoints *
-mainTask::AddSplayPointsToModel( Geometry * geom )
+Points *
+mainTask::AddPointsToModel( Geometry * geom )
 {
-  LOGI( "mainTask::Add Splay Points To Model() comps %d ", modelObject.GetNrComponents() );
+  LOGI( "mainTask::Add Points To Model() comps %d ", modelObject.GetNrComponents() );
   Model * model = dynamic_cast< Model * >( geom );
   if ( model == NULL ) {
     LOGW("WARNING NULL model");
     return NULL;
   }
-  // LOGI( "mainTask add splays");
-  SplayPointComponent * points_component = modelObject.AddComponent< SplayPointComponent >( "splay_points" );
+  // LOGI( "mainTask add points");
+  PointsComponent * points_component = modelObject.AddComponent< PointsComponent >( "splay_points" );
   if ( points_component ) {
     pointShader = new PointShader( scale );
-    splayPoints = new SplayPoints( model, pointShader );
-    points_component->SetSplayPoints( splayPoints );
+    points = new Points( model, pointShader );
+    points_component->SetPoints( points );
   }
-  return splayPoints;
+  return points;
 }
 
 // private
@@ -156,7 +160,7 @@ mainTask::AddStationsToModel( Geometry * geom )
     return NULL;
   }
   int ns = model->GetNStations();
-  const char ** name = model->GetStations();
+  const Station * name = model->GetStations();
   if ( name == NULL ) return NULL;
 
   if ( stations != NULL ) delete stations;
@@ -255,8 +259,8 @@ mainTask::AttachEventHandlers()
   MenuComponent * menu_component = component_cast< MenuComponent >( modelObject );
   if ( menu_component ) attachEvent( PRERENDER_EVENT, *menu_component );
 
-  SplayPointComponent * splayPoint_component = component_cast< SplayPointComponent >( modelObject );
-  if ( splayPoint_component ) attachEvent( RENDER_EVENT, *splayPoint_component );
+  PointsComponent * points_component = component_cast< PointsComponent >( modelObject );
+  if ( points_component ) attachEvent( RENDER_EVENT, *points_component );
 
   StationsComponent * station_component = component_cast< StationsComponent >( modelObject );
   if ( station_component ) {
@@ -287,8 +291,8 @@ mainTask::DetachEventHandlers()
     detachEvent( POSTMOTION_EVENT, *station_component );
   }
 
-  SplayPointComponent * splayPoint_component = component_cast< SplayPointComponent >( modelObject );
-  if ( splayPoint_component ) detachEvent( RENDER_EVENT, *splayPoint_component );
+  PointsComponent * points_component = component_cast< PointsComponent >( modelObject );
+  if ( points_component ) detachEvent( RENDER_EVENT, *points_component );
 
   MenuComponent * menu_component = component_cast< MenuComponent >( modelObject );
   if ( menu_component ) detachEvent( PRERENDER_EVENT, *menu_component );
@@ -340,7 +344,7 @@ mainTask::~mainTask()
 
   if ( geometry ) delete geometry;
   if ( stations ) delete stations;
-  if ( splayPoints ) delete splayPoints;
+  if ( points )   delete points;
   if ( surface  ) delete surface;
 }
 
@@ -354,10 +358,10 @@ mainTask::Start()
   // at this point mainTask has a pointer to the MVP matrix (inside the TransformShader)
 
   if ( distoXModel ) {
-    AddSplayPointsToModel( geom );
+    AddPointsToModel( geom );
     AddStationsToModel( geom );
   } else {
-    AddSplayPointsToModel( geom );
+    AddPointsToModel( geom );
     AddStationsToModel( geom );
     AddSurfaceToModel( geom );
   }

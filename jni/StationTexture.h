@@ -4,6 +4,7 @@
 
 #include "Texture.h"
 #include "Geometry.h"
+#include "Station.h"
 #include "Matrix4.h"
 
 class StationTexture : public Texture
@@ -16,8 +17,9 @@ class StationTexture : public Texture
     unsigned int table_stride;
 
     unsigned char * texData;   // [owned]
-    unsigned int nStation;
+    unsigned int nStation; 
     Geometry * modelGeometry;  // model geometry [not owned]
+    const Station * mNames;    // [not owned]
     float * vertex;            // [owned]
     unsigned short * index;    // [owned]
     Geometry geometry;         // my geometry
@@ -25,13 +27,15 @@ class StationTexture : public Texture
   public:
     // ns   number of stations
     // len  max nr chars in station names
-    StationTexture( int ns, Geometry * geom, const char ** names, unsigned int len = 2 ); 
+    StationTexture( int ns, Geometry * geom, const Station * names, unsigned int len = 2 ); 
 
     ~StationTexture();
 
     Geometry * GetMyGeometry() { return & geometry; }
 
     void ComputeVertices( const Matrix4 * mat );
+
+    void SetStationNames( int ns, const Station * names );
 
   private:
     // k    index

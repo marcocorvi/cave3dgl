@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include "Geometry.h"
+#include "Station.h"
 
 class Model : public Geometry
 {
@@ -12,7 +13,7 @@ class Model : public Geometry
     typedef std::map< std::string, int >::iterator StationMapIterator;
 
   protected:
-    char ** station_name;
+    Station * station_name;
     float * vertex;         // stations positions
     unsigned short * lindex; // leg index
     unsigned short * sindex; // splay index
@@ -27,6 +28,7 @@ class Model : public Geometry
     float z_offset;
     float scale;    // model scale = 20 / max_side
     
+  protected:
     StationMap stations;
 
   public:
@@ -38,7 +40,7 @@ class Model : public Geometry
 
     int GetNStations() const { return therion_ns; }
 
-    const char ** GetStations() const { return (const char **) station_name; }
+    const Station * GetStations() const { return (const Station *) station_name; }
 }; 
 
 #endif

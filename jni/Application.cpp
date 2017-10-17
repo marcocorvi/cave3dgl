@@ -1,7 +1,6 @@
 #include "Application.h"
 
 #include "Log.h"
-#include "Timer.h"
 #include "Events.h"
 #include "EventManagerFcts.h"
 #include "Renderer.h"

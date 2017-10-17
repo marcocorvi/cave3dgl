@@ -1,5 +1,6 @@
-#ifndef SPLAY_POINTS_H
-#define SPLAY_POINTS_H
+
+#ifndef POINTS_H
+#define POINTS_H
 
 #include <string>
 #include <map>
@@ -8,8 +9,8 @@
 #include "Shader.h"
 #include "Model.h"
 
-class SplayPoints : public Renderable
-                  , public Geometry
+class Points : public Renderable
+             , public Geometry
 {
   private:
     float * vertex; // splay points positions [not owned]
@@ -22,9 +23,9 @@ class SplayPoints : public Renderable
     float scale;    // model scale
 
   public:
-    SplayPoints( Model * model, Shader * shader );
+    Points( Model * model, Shader * shader );
 
-    ~SplayPoints();
+    ~Points();
 
     int GetNPoints() { return therion_nx; }
 

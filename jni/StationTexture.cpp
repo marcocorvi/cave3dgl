@@ -11,11 +11,12 @@
     // geom  model geometry
     // names station names
     // len   max nr chars in station names
-StationTexture::StationTexture( int ns, Geometry * geom, const char ** names, unsigned int len )
+StationTexture::StationTexture( int ns, Geometry * geom, const Station * names, unsigned int len )
   : length( len + 1 )
   , texData( NULL )
   , nStation( ns )
   , modelGeometry( geom )
+  , mNames( names )
   , vertex( NULL )
   , index( NULL )
   , geometry( GL_TRIANGLES, "stations", FLAG_STATIONS )
@@ -30,10 +31,10 @@ StationTexture::StationTexture( int ns, Geometry * geom, const char ** names, un
   name_stride  = name_width * bpp;
 
   if ( nStation > 0 ) {
-    texData = new unsigned char[ table_stride * height ];
+    texData = (unsigned char *)malloc( table_stride * height * sizeof(unsigned char) );
     memset( texData, 0, table_stride * height ); 
-    vertex = new float[ 4 * 5 * nStation ];      // 4 vertices/label, 5 float/vertex, nStation labels
-    index  = new unsigned short[ 6 * nStation ]; // 6 int/label 
+    vertex = (float*)malloc( 4 * 5 * nStation * sizeof(float) );      // 4 vertices/label, 5 float/vertex, nStation labels
+    index  = (unsigned short *)malloc( 6 * nStation * sizeof(unsigned short) ); // 6 int/label 
   }
   SetTexture( width, height, bpp, texData );
   geometry.SetNVertex( 4 * nStation );
@@ -46,11 +47,29 @@ StationTexture::StationTexture( int ns, Geometry * geom, const char ** names, un
   geometry.SetVertexStride( sizeof(float) * 5 );
   // LOGI("Station Texture nr. stations %d", nStation );
   for ( int k=0; k<nStation; ++k ) {
-    if ( names[k] == NULL ) {
+    if ( mNames[k].name == NULL ) {
       LOGW("WARNING station %d / %d has NULL name", k, nStation );
       break;
     }
-    AddStation( k, names[k] );
+    AddStation( k, mNames[k].name );
+  }
+}
+
+void 
+StationTexture::SetStationNames( int ns, const Station * names )
+{
+  if ( ns > nStation ) {
+    mNames = names;
+    vertex = (float*)realloc( vertex, 4*5*ns*sizeof(float) );
+    index  = (unsigned short *)realloc( index, 6*ns* sizeof(unsigned short) ); // 6 int/label 
+    for ( int k=nStation; k<ns; ++k ) {
+      AddStation( k, mNames[k].name );
+    }
+    nStation = ns;
+    geometry.SetNVertex( 4 * nStation );
+    geometry.SetNSIndex( 6 * nStation );
+    geometry.SetVertex( (void *)vertex );
+    geometry.SetSIndex( (void *)index );
   }
 }
 
@@ -64,7 +83,7 @@ StationTexture::~StationTexture()
 void 
 StationTexture::AddStation( int k, const char * str )
 {
-  if ( k >= nStation ) return;
+  // if ( k >= nStation ) return;
   int col = k % COLS;
   int row = k / COLS;
   int len = (length < strlen( str ))? length : strlen(str);
@@ -116,13 +135,15 @@ StationTexture::AddStation( int k, const char * str )
 void 
 StationTexture::ComputeVertices( const Matrix4 * mat )
 {
-  // LOGI("StationTexture compute vertices");
+  // LOGI("StationTexture compute vertices ns %d", nStation);
   float * v = (float *)( modelGeometry->Vertex() );
   int k3 = 0;
   int off = 0;
   Vector4 vec;
   Vector4 out;
-  for ( int k=0; k<nStation; ++k, k3 += 3 ) {
+  for ( int k=0; k<nStation; ++k ) {
+    k3 = 3 * mNames[k].idx;
+    // LOGI("station %d idx %d name %s", k, mNames[k].idx, mNames[k].name );
     vec.m_x = v[k3+0];
     vec.m_y = v[k3+1];
     vec.m_z = v[k3+2];
