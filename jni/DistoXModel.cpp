@@ -126,6 +126,11 @@ DistoXModel::DistoXModel( android_app * state, JNIEnv * e, mainTask * task )
   , e0( 0 )  // origin station coords
   , n0( 0 )
   , z0( 0 )
+  , e1( 0 )  // reference data
+  , n1( 0 )
+  , z1( 0 )
+  , cnt( 0 )
+  , mStationNumber( 0 )
   , k0( 0 )  // origin station index
 {
   // JNIEnv * lenv;
@@ -157,13 +162,9 @@ DistoXModel::DistoXModel( android_app * state, JNIEnv * e, mainTask * task )
   vertex[3*k0+1]  = fe;
   vertex[3*k0+2]  = fn; // origin
 
-  station_name = (char **)malloc( ssize * sizeof(char *) );
-  station_name[k0] = new char[2];
-  strcpy( station_name[k0], STATION_0 );
-
-  // station_name[1] = new char[2]; strcpy( station_name[1], STATION_X );
-  // station_name[2] = new char[2]; strcpy( station_name[2], STATION_Y );
-  // station_name[3] = new char[2]; strcpy( station_name[3], STATION_Z );
+  station_name = (Station *)malloc( ssize * sizeof(Station) );
+  station_name[k0].name = new char[2];
+  strcpy( station_name[k0].name, STATION_0 );
 
   SetNLegs( therion_nl );
   SetNVertex( therion_ns );
@@ -256,9 +257,47 @@ DistoXModel::disconnect( )
   return false;
 }
 
+#define EPS 0.2
+
 void
 DistoXModel::addPoint( double e, double n, double z )
 {
+  // LOGI("delta %.2f %.2f %.2f cnt %d", e-e1, n-n1, z-z1, cnt );
+  if ( fabs(e-e1) < EPS && fabs(n-n1) < EPS && fabs(z-z1) < EPS ) {
+    if ( ++cnt >= 3 ) {
+      if ( cnt == 3 ) {
+        char name[8];
+        ++ mStationNumber;
+        int n = mStationNumber;
+        int div = 1000;
+        int c = 0;
+        while ( div > 0 ) {
+          c = n / div;
+          n %= div;
+          if ( c > 0 ) break;
+          div /= 10;
+        }
+        int k = 0;
+        for ( ; ; ) {
+          name[k] = '0' + c;
+          ++ k;
+          div /= 10;
+          if ( div == 0 ) break;
+          c = n / div;
+          n %= div;
+        } 
+        name[k] = 0;
+        addStation( name, e1, n1, z1 );
+      }
+      return;
+    }
+  } else {
+    cnt = 0;
+    e1 = e;
+    n1 = n;
+    z1 = z;
+  }
+
   bool update = false;
   nVertex = therion_ns + therion_nx;
   nSIndex = 2 * therion_nx;
@@ -290,7 +329,7 @@ DistoXModel::addPoint( double e, double n, double z )
   sindex[ 2*therion_nx + 0 ] = k0;  // therion_nl = 0
   sindex[ 2*therion_nx + 1 ] =  k;  // therion_ns = 1
   vertex[ 3*k + 2 ] = fn;
-  LOGI("DistoX Model add point %d: v[%d] %.2f %.2f %.2f", therion_nx, k, fz, fe, fn );
+  // LOGI("DistoX Model add point %d: v[%d] %.2f %.2f %.2f", therion_nx, k, fz, fe, fn );
 
   // update geometry bounds (bbox)
   // if ( fz < xmin ) { xmin = fz; } else if ( fz > xmax ) { xmax = fz; }
@@ -308,15 +347,13 @@ void
 DistoXModel::addStation( const char * name, double e, double n, double z )
 {
   bool update = false;
-  bool with_stations = false;
   nVertex = therion_ns + therion_nx;
   nLIndex = 2 * therion_nl;
   if ( therion_ns >= ssize ) {
     ssize += SBUFFER_SIZE;
-    station_name = ( char **) realloc( station_name, ssize * sizeof(char *) );
+    station_name = ( Station *) realloc( station_name, ssize * sizeof(Station) );
     // SetStations( station_name );
     update = true;
-    with_stations = true;
   }
   if ( nVertex >= vsize ) {
     vsize += VBUFFER_SIZE;
@@ -336,8 +373,9 @@ DistoXModel::addStation( const char * name, double e, double n, double z )
   SetNPos(3);
   SetVertexStride( sizeof(float) * 3 );
 
-  station_name[therion_ns] = new char[ strlen(name) + 1];
-  strcpy( station_name[therion_ns], name );
+  station_name[therion_ns].idx  = nVertex;
+  station_name[therion_ns].name = new char[ strlen(name) + 1];
+  strcpy( station_name[therion_ns].name, name );
 
   z0 += z;
   e0 += e;
@@ -353,7 +391,7 @@ DistoXModel::addStation( const char * name, double e, double n, double z )
   lindex[ 2*therion_nl + 0 ] = k0;  
   lindex[ 2*therion_nl + 1 ] =  k; 
   k0 = k; // index of last station
-  LOGI("DistoX Model add point %d: v[%d] %.2f %.2f %.2f", therion_nx, k, fz, fe, fn );
+  LOGI("DistoX Model add station point %d: v[%d] %.2f %.2f %.2f", therion_nx, k, fz, fe, fn );
 
   // update geometry bounds (bbox)
   // if ( fz < xmin ) { xmin = fz; } else if ( fz > xmax ) { xmax = fz; }
@@ -364,7 +402,7 @@ DistoXModel::addStation( const char * name, double e, double n, double z )
 
   if ( update ) {
     InitBBox( false );
-    NotifyRenderer( with_stations );
+    NotifyRenderer( true );
   }
 }
 
@@ -373,7 +411,7 @@ DistoXModel::addStation( const char * name, double e, double n, double z )
 void 
 DistoXModel::NotifyRenderer( bool with_stations ) 
 {
-  LOGI("DistoX Model notify %d", therion_nx );
+  LOGI("DistoX Model notify st %d nx %d", therion_ns, therion_nx );
   mTask->NotifiedModel( with_stations );
 }
 

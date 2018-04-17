@@ -4,32 +4,31 @@
 
 #include "Component.h"
 #include "EventHandler.h"
-#include "SplayPoints.h"
+#include "Points.h"
 
-class SplayPointComponent : public Component
-                          , public EventHandler
+class PointsComponent : public Component
+                      , public EventHandler
 {
   private:
     static const unsigned int s_id = 6;
 
-    SplayPoints * splayPoints;
+    Points * points;
 
   public:
     static unsigned int GetId() { return s_id; }
 
-    explicit SplayPointComponent( Object * o, const char * n )
+    explicit PointsComponent( Object * o, const char * n )
       : Component( o, n )
       , EventHandler( n )
     { }
-    virtual ~SplayPointComponent() { }
+    virtual ~PointsComponent() { }
 
     virtual void InitializeComponent();
 
-    SplayPoints * GetSplayPoints() { return splayPoints; }
-    void SetSplayPoints( SplayPoints * s ) { splayPoints = s; }
+    Points * GetPoints() { return points; }
+    void SetPoints( Points * pts ) { points = pts; }
 
     virtual void HandleEvent( EventType * evt );
-
 
 };
 #endif

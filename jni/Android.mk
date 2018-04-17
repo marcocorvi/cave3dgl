@@ -40,7 +40,7 @@ EventManager.cpp \
 RenderableComponent.cpp \
 TransformComponent.cpp \
 StatusComponent.cpp \
-SplayPointComponent.cpp \
+PointsComponent.cpp \
 MenuComponent.cpp \
 StationsComponent.cpp \
 SurfaceComponent.cpp \
@@ -48,7 +48,7 @@ Geometry.cpp \
 Model.cpp \
 FileModel.cpp \
 DistoXModel.cpp \
-SplayPoints.cpp \
+Points.cpp \
 LoxFile.cpp \
 LoxBitmap.cpp \
 TherionFile.cpp \

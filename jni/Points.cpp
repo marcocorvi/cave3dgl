@@ -1,4 +1,5 @@
-#include "SplayPoints.h"
+
+
 
 #include <assert.h>
 
@@ -14,9 +15,10 @@
 #include <GLES/gl.h>
 
 #include "Functions.h"
+#include "Points.h"
 
-SplayPoints::SplayPoints( Model * model, Shader * shader )
-  : Geometry( GL_POINTS, "SplayPoints", FLAG_POINTS )
+Points::Points( Model * model, Shader * shader )
+  : Geometry( GL_POINTS, "Points", FLAG_POINTS )
   , vertex( NULL ) // can use pointer in vertex array of the model
   , index( NULL )  // but point indices must be reset (to skip FROM index)
   , therion_nx( model->therion_nx )
@@ -37,7 +39,7 @@ SplayPoints::SplayPoints( Model * model, Shader * shader )
   SetNVertex( nVertex ); // number of vertexes
   SetNSIndex( nSIndex ); // number of indices used to render
   
-  SetName( "splay_points" );
+  SetName( "points" );
   SetNPos( 3 );
   SetVertexStride( sizeof(float) * 3 );
 
@@ -52,13 +54,13 @@ SplayPoints::SplayPoints( Model * model, Shader * shader )
 }
 
 void 
-SplayPoints::UpdateDataBuffers( Model * model )
+Points::UpdateDataBuffers( Model * model )
 {
   int nv = model->therion_ns + model->therion_nx; // number of vertexes
   int ni = model->therion_nx;                     // number of indexes
 
   vertex = (float *)(model->Vertex()); // + 3 * model->therion_ns; 
-  LOGI("SplayPoints update data buffer (nx %d -> %d) nIndex %d st %d leg %d scale %.2f",
+  LOGI("Points update data buffer (nx %d -> %d) nIndex %d st %d leg %d scale %.2f",
     therion_nx, model->therion_nx, nSIndex, model->therion_ns, model->therion_nl, model->scale );
 
   index = (unsigned short *)(model->SIndex());
@@ -75,7 +77,7 @@ SplayPoints::UpdateDataBuffers( Model * model )
   // LOGI("update done");
 }
 
-SplayPoints::~SplayPoints() 
+Points::~Points() 
 {
 }
 
